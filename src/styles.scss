@@ -6,8 +6,8 @@ $available_height: 95vh;
 $body_width: $available_width;
 $body_height: $available_height;
 
-$card_width: math.div($body_width, 12);
 $card_height: math.div($body_height, 6);
+$card_width: math.div($card_height, 1.452);
 
 body {
     background-color: #778877;
@@ -15,9 +15,26 @@ body {
     height: $body_height;
 }
 
+div.card-columns {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    > .second-column {
+        background-color: yellow;
+        width: 100%;
+    }
+}
+
 div.playField {
     width: 80%;
     height: 90%;
+    margin-top: -25%;
+}
+
+div.cards-pile {
+    position: absolute;
 }
 
 div.cards-row {
@@ -26,10 +43,13 @@ div.cards-row {
     justify-content: space-around;
 
     &.placeholder-n {
-        margin-top: 5%;
+        margin-top: 25%;
     }
     &.placeholder-z {
         margin-top: 5%;
+    }
+    &.placeholder-w, &.placeholder-e {
+        width: $card_width;
     }
 }
 
@@ -54,17 +74,12 @@ div.cards-area {
 }
 
 .card-format {
-    position: absolute;
     width: $card_width;
     height: $card_height;
 }
 
 .fill-color {
     border: black solid var(--offsetx);
-}
-.move-card-5 {
-    transition: transform 0.8s;
-    transform: translate(10em, 10em);
 }
 
 .move-card {
