@@ -12,6 +12,7 @@ export interface Card {
     moving: boolean;
     x?: number;
     y?: number;
+    used: boolean;
 }
 
 export interface Pile {
