@@ -10,6 +10,8 @@ export interface Card {
     turning: boolean;
     turned: boolean;
     moving: boolean;
+    x?: number;
+    y?: number;
 }
 
 export interface Pile {

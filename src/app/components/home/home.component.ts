@@ -31,6 +31,9 @@ export class HomeComponent implements OnInit {
 
   offsetYnorth: number = 0;
 
+  won: {x?:number, y?:number} = {};
+
+
   constructor(private elementRef: ElementRef) { }
 
   ngOnInit(): void {
@@ -108,8 +111,8 @@ export class HomeComponent implements OnInit {
       this.offsetNY = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().top -
           this.elementRef.nativeElement.querySelector('.placeholder-n').getBoundingClientRect().top;
 
-      this.offsetEX = this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect().left -
-          this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().left;
+      this.offsetEX = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().left -
+          this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect().left;
       this.offsetEY = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().top -
           this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect().top;
 
@@ -124,30 +127,64 @@ export class HomeComponent implements OnInit {
   cardClick(card: Card): boolean {
 //    if (card.type === this.troef) {
       this.moveCard[card.id] = true;
-      this.otherPlays();
+      this.otherPlays(card);
 //    }
     return true;
   }
 
-  otherPlays() {
+  play(starter: number) {
+    for (let i: number = starter; i < starter + 4; i++) {
+      setTimeout(() => {
+        switch (i % 4) {
+          case 0:
+            break;
+        }
+      }, i * 1000);
+    }
+  };
+
+  otherPlays(cardSouth: Card) {
+    let cardNorth: Card;
+    let cardEast: Card;
+    let cardWest: Card;
+
     setTimeout(() => {
-      const card: Card | undefined = this.cardsOfWest[0];
+      const card: Card | undefined = this.cardsOfWest[this.cardsOfWest.length - 1];
       if (card) {
         this.moveCard[card.id] = true;
+        cardWest = card;
       }
     }, 1000)
     setTimeout(() => {
-      const card: Card | undefined = this.cardsOfNorth[0];
+      const card: Card | undefined = this.cardsOfNorth[this.cardsOfNorth.length - 1];
       if (card) {
         this.moveCard[card.id] = true;
+        cardNorth = card;
       }
     }, 2000)
     setTimeout(() => {
       const card: Card | undefined = this.cardsOfEast[0];
       if (card) {
         this.moveCard[card.id] = true;
+        cardEast = card;
       }
-    }, 3000)
+    }, 3000);
+
+    setTimeout(() => {
+      this.won = {x: 1, y: 1};
+      cardNorth.x = 150 - this.elementRef.nativeElement.querySelector('.placeholder-n').getBoundingClientRect().left
+      cardNorth.y = 750 - this.elementRef.nativeElement.querySelector('.placeholder-n').getBoundingClientRect().top;
+      cardEast.x = 450 - this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect().left;
+      cardEast.y = 750 - this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect().top;
+      cardSouth.x = 450 - this.elementRef.nativeElement.querySelectorAll('.placeholder-z > .card-canvas:nth-child(4)')[0].left;
+      cardSouth.y = 750 - this.elementRef.nativeElement.querySelector('.placeholder-z').getBoundingClientRect().top;
+      cardWest.x = 450 - this.elementRef.nativeElement.querySelector('.placeholder-w').getBoundingClientRect().left;
+      cardWest.y = 750 - this.elementRef.nativeElement.querySelector('.placeholder-w').getBoundingClientRect().top;
+      // this.cardsOfNorth = this.cardsOfNorth.filter(c => c.id !== cardNorth.id);
+      // this.cardsOfEast = this.cardsOfEast.filter(c => c.id !== cardEast.id);
+      // this.placeholdersZ = this.placeholdersZ.filter(c => c.id !== cardSouth.id);
+      // this.cardsOfWest = this.cardsOfWest.filter(c => c.id !== cardWest.id);
+    }, 5000);
   }
 
 }
