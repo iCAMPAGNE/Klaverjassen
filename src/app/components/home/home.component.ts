@@ -20,18 +20,18 @@ export class HomeComponent implements OnInit {
   placeholdersZ: Card[] = [];
   troef: SUIT = SUIT.SPADES;
   moveCard: boolean[] = [];
-  offsetX: number = 0;
-  offsetX2X: number = 0;
-  offsetSY: number = 0;
+  offsetSouthX: number = 0;
+  offsetSouthXdiff: number = 0;
+  offsetSouthY: number = 0;
 
-  offsetNX: number = 0;
-  offsetNY: number = 0;
+  offsetNorthX: number = 0;
+  offsetNorthY: number = 0;
 
-  offsetEX: number = 0;
-  offsetEY: number = 0;
+  offsetEastX: number = 0;
+  offsetEastY: number = 0;
 
-  offsetWX: number = 0;
-  offsetWY: number = 0;
+  offsetWestX: number = 0;
+  offsetWestY: number = 0;
 
   placeholderNorthRect: any;
   placeholderEastRect: any;
@@ -109,24 +109,25 @@ export class HomeComponent implements OnInit {
       const placeholderSouth = this.elementRef.nativeElement.querySelector('.south').getBoundingClientRect();
       const placeholderS = this.elementRef.nativeElement.querySelector('.placeholder-player').getBoundingClientRect();
       this.placeholderPlayerRect = this.elementRef.nativeElement.querySelector('.placeholder-player > .card-canvas:first-child').getBoundingClientRect();
-      this.offsetX =  placeholderSouth.left - this.placeholderPlayerRect.left;
       const secondSouthCard = this.elementRef.nativeElement.querySelector('.placeholder-player > .card-canvas:nth-child(2)').getBoundingClientRect();
-      this.offsetX2X =  secondSouthCard.left - this.placeholderPlayerRect.left;
-      this.offsetSY = placeholderSouth.top - placeholderS.top;
 
       this.placeholderNorthRect = this.elementRef.nativeElement.querySelector('.placeholder-n > .card-canvas:first-child').getBoundingClientRect();
       this.placeholderEastRect =  this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect();
       this.placeholderSouthRect = this.elementRef.nativeElement.querySelector('.placeholder-s > .card-canvas:first-child').getBoundingClientRect();
       this.placeholderWestRect =  this.elementRef.nativeElement.querySelector('.placeholder-w').getBoundingClientRect();
 
-      this.offsetNX = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().left - this.placeholderNorthRect.left;
-      this.offsetNY = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().top - this.placeholderNorthRect.top;
+      this.offsetNorthX = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().left - this.placeholderNorthRect.left;
+      this.offsetNorthY = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().top - this.placeholderNorthRect.top;
 
-      this.offsetEX = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().left - this.placeholderEastRect.left;
-      this.offsetEY = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().top - this.placeholderEastRect.top;
+      this.offsetEastX = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().left - this.placeholderEastRect.left;
+      this.offsetEastY = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().top - this.placeholderEastRect.top;
 
-      this.offsetWX = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().left - this.placeholderWestRect.left;
-      this.offsetWY = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().top - this.placeholderWestRect.top;
+      this.offsetSouthX =  placeholderSouth.left - this.placeholderPlayerRect.left;
+      this.offsetSouthXdiff = secondSouthCard.left - this.placeholderPlayerRect.left;
+      this.offsetSouthY = placeholderSouth.top - placeholderS.top;
+
+      this.offsetWestX = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().left - this.placeholderWestRect.left;
+      this.offsetWestY = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().top - this.placeholderWestRect.top;
     }, 500);
   }
 
@@ -137,8 +138,8 @@ export class HomeComponent implements OnInit {
     }
 //    if (card.type === this.troef) {
       this.moveCard[card.id] = true;
-      card.x = this.offsetX;
-      card.y = this.offsetSY;
+      card.x = this.offsetSouthX;
+      card.y = this.offsetSouthY;
       card.used = true;
       this.cardSouth = card;
     this.nextPlayer();
@@ -157,8 +158,8 @@ export class HomeComponent implements OnInit {
           const card: Card | undefined = this.cardsOfNorth.filter(c => !c.used)[0];
           if (card) {
             this.moveCard[card.id] = true;
-            card.x = this.offsetNX;
-            card.y = this.offsetNY;
+            card.x = this.offsetNorthX;
+            card.y = this.offsetNorthY;
             card.used = true;
             this.cardNorth = card;
           }
@@ -175,8 +176,8 @@ export class HomeComponent implements OnInit {
           const card: Card | undefined = this.cardsOfEast.filter(c => !c.used)[0];
           if (card) {
             this.moveCard[card.id] = true;
-            card.x = this.offsetEX;
-            card.y = this.offsetEY;
+            card.x = this.offsetEastX;
+            card.y = this.offsetEastY;
             card.used = true;
             this.cardEast = card;
           }
@@ -193,8 +194,8 @@ export class HomeComponent implements OnInit {
           const card: Card | undefined = this.cardsOfWest.filter(c => !c.used)[0];
           if (card) {
             this.moveCard[card.id] = true;
-            card.x = this.offsetWX;
-            card.y = this.offsetWY;
+            card.x = this.offsetWestX;
+            card.y = this.offsetWestY;
             card.used = true;
             this.cardWest = card;
           }
@@ -218,7 +219,7 @@ export class HomeComponent implements OnInit {
         this.cardNorth.y = won.top - this.placeholderNorthRect.top;
         this.cardEast.x = won.left - this.placeholderEastRect.left;
         this.cardEast.y = won.top - this.placeholderEastRect.top;
-        this.cardSouth.x = won.left - this.placeholderSouthRect.left + this.offsetX;
+        this.cardSouth.x = won.left - this.placeholderSouthRect.left + this.offsetSouthX;
         this.cardSouth.y = won.top - this.placeholderPlayerRect.top;
         this.cardWest.x = won.left - this.placeholderWestRect.left;
         this.cardWest.y = won.top - this.placeholderWestRect.top;

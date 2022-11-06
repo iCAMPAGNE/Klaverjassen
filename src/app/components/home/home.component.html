@@ -37,7 +37,7 @@
             <div class="cards-row placeholder-player">
                 <div *ngFor="let card of placeholdersZ let i = index;" class="card-canvas">
                     <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': moveCard[card.id]}"
-                         style="--offsetx: {{(card.x || 0) - i*offsetX2X}}px; --offsety: {{card.y}}px"
+                         style="--offsetx: {{(card.x || 0) - i*offsetSouthXdiff}}px; --offsety: {{card.y}}px"
                          (click)="cardClick(card)"/>
                 </div>
             </div>
