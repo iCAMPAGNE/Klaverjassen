@@ -48,7 +48,37 @@
             </div>
         </div>
         <div class="card-column done-placeholder">
-            <div class="cover-done-pile"></div>
+            <div class="cover-done-pile">
+                <div class="score-board">
+                    <p style="width: 100%; text-align: center">Ronde 1 van 16</p>
+                    <table>
+                        <col>
+                        <col>
+                        <col>
+                        <tr>
+                            <th></th>
+                            <th>N/Z</th>
+                            <th>O/W</th>
+                        </tr>
+                        <tr>
+                            <td>Score</td>
+                            <td>{{scoreNorthSouth}}</td>
+                            <td>{{scoreEastWest}}</td>
+                        </tr>
+                        <tr>
+                            <td>Roem</td>
+                            <td>{{roemNorthSouth}}</td>
+                            <td>{{roemEastWest}}</td>
+                        </tr>
+                        <tr>
+                            <td>Totaal</td>
+                            <td>{{scoreNorthSouth + roemNorthSouth}}</td>
+                            <td>{{scoreEastWest + roemEastWest}}</td>
+                        </tr>
+                    </table>
+
+                </div>
+            </div>
             <div class="cards-row placeholder-e">
                 <div *ngFor="let card of cardsOfEast let i = index;" class="cards-pile card-canvas">
                     <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': moveCard[card.id]}"

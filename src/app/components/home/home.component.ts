@@ -44,6 +44,11 @@ export class HomeComponent implements OnInit {
   cardSouth?: Card;
   cardWest?: Card;
 
+  scoreNorthSouth: number = 0;
+  scoreEastWest: number = 0;
+  roemNorthSouth: number = 0;
+  roemEastWest: number = 0;
+
 
   constructor(private elementRef: ElementRef) { }
 
