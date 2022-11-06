@@ -1,10 +1,10 @@
 <div class="playField">
     <div class="card-columns">
-        <div class="card-column">
+        <div class="card-column done-placeholder">
             <div class="cards-row placeholder-w">
                 <div *ngFor="let card of cardsOfWest let i = index;" class="cards-pile card-canvas">
                     <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': moveCard[card.id]}"
-                         style="--offsetx: {{card.x}}px; --offsety: {{card.y}}px"/>
+                         style="--offsetx: {{card.x}}px; --offsety: {{card.y}}px;"/>
                 </div>
             </div>
         </div>
@@ -12,7 +12,7 @@
             <div class="cards-row placeholder-n">
                 <div *ngFor="let card of cardsOfNorth let i = index;" class="cards-pile card-canvas">
                     <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': moveCard[card.id]}"
-                         style="--offsetx: {{card.x}}px; --offsety: {{card.y}}px"/>
+                         style="--offsetx: {{card.x}}px; --offsety: {{card.y}}px;"/>
                 </div>
             </div>
             <div class="cards-row placeholder-n">
@@ -37,20 +37,22 @@
             <div class="cards-row placeholder-player">
                 <div *ngFor="let card of placeholdersZ let i = index;" class="card-canvas">
                     <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': moveCard[card.id]}"
-                         style="--offsetx: {{(card.x || 0) - i*offsetSouthXdiff}}px; --offsety: {{card.y}}px"
+                         style="--offsetx: {{(card.x || 0) - i*offsetSouthXdiff}}px; --offsety: {{card.y}}px;"
                          (click)="cardClick(card)"/>
                 </div>
             </div>
 
+            <div class="cover-done-pile-player"></div>
             <div class="cards-row placeholder-s">
                 <div class="cards-pile card-canvas card-format"></div>
             </div>
         </div>
-        <div class="card-column">
+        <div class="card-column done-placeholder">
+            <div class="cover-done-pile"></div>
             <div class="cards-row placeholder-e">
                 <div *ngFor="let card of cardsOfEast let i = index;" class="cards-pile card-canvas">
                     <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': moveCard[card.id]}"
-                         style="--offsetx: {{card.x}}px; --offsety: {{card.y}}px">
+                         style="--offsetx: {{card.x}}px; --offsety: {{card.y}}px;">
                 </div>
             </div>
         </div>

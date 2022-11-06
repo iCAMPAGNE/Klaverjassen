@@ -133,7 +133,7 @@ export class HomeComponent implements OnInit {
 
 
   cardClick(card: Card): boolean {
-    if (this.player != this.Players[2]) {
+    if (this.player != this.Players[2] || this.numberOfPlayed === 4) {
       return false; // Only allowed when it's your turn
     }
 //    if (card.type === this.troef) {
