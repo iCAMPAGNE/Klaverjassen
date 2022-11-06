@@ -106,54 +106,47 @@ export class HomeComponent implements OnInit {
     }
 
     setTimeout(() => {
-      const placeholderSouth = this.elementRef.nativeElement.querySelector('.south');
-      const placeholderS = this.elementRef.nativeElement.querySelector('.placeholder-player');
-      const firstSouthCard = this.elementRef.nativeElement.querySelectorAll('.placeholder-player > .card-canvas:first-child')[0];
-      this.offsetX =  placeholderSouth.getBoundingClientRect().left - firstSouthCard.getBoundingClientRect().left;
-      const secondSouthCard = this.elementRef.nativeElement.querySelectorAll('.placeholder-player > .card-canvas:nth-child(2)')[0];
-      this.offsetX2X =  secondSouthCard.getBoundingClientRect().left - firstSouthCard.getBoundingClientRect().left;
-      this.offsetSY = placeholderSouth.getBoundingClientRect().top - placeholderS.getBoundingClientRect().top;
-
-      this.offsetNX = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().left -
-          this.elementRef.nativeElement.querySelector('.placeholder-n > .card-canvas:first-child').getBoundingClientRect().left;
-      this.offsetNY = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().top -
-          this.elementRef.nativeElement.querySelector('.placeholder-n').getBoundingClientRect().top;
-
-      this.offsetEX = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().left -
-          this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect().left;
-      this.offsetEY = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().top -
-          this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect().top;
-
-      this.offsetWX = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().left -
-          this.elementRef.nativeElement.querySelector('.placeholder-w').getBoundingClientRect().left;
-      this.offsetWY = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().top -
-          this.elementRef.nativeElement.querySelector('.placeholder-w').getBoundingClientRect().top;
+      const placeholderSouth = this.elementRef.nativeElement.querySelector('.south').getBoundingClientRect();
+      const placeholderS = this.elementRef.nativeElement.querySelector('.placeholder-player').getBoundingClientRect();
+      this.placeholderPlayerRect = this.elementRef.nativeElement.querySelector('.placeholder-player > .card-canvas:first-child').getBoundingClientRect();
+      this.offsetX =  placeholderSouth.left - this.placeholderPlayerRect.left;
+      const secondSouthCard = this.elementRef.nativeElement.querySelector('.placeholder-player > .card-canvas:nth-child(2)').getBoundingClientRect();
+      this.offsetX2X =  secondSouthCard.left - this.placeholderPlayerRect.left;
+      this.offsetSY = placeholderSouth.top - placeholderS.top;
 
       this.placeholderNorthRect = this.elementRef.nativeElement.querySelector('.placeholder-n > .card-canvas:first-child').getBoundingClientRect();
-      this.placeholderEastRect = this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect();
+      this.placeholderEastRect =  this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect();
       this.placeholderSouthRect = this.elementRef.nativeElement.querySelector('.placeholder-s > .card-canvas:first-child').getBoundingClientRect();
-      this.placeholderWestRect = this.elementRef.nativeElement.querySelector('.placeholder-w').getBoundingClientRect();
+      this.placeholderWestRect =  this.elementRef.nativeElement.querySelector('.placeholder-w').getBoundingClientRect();
 
-      this.placeholderPlayerRect = this.elementRef.nativeElement.querySelectorAll('.placeholder-player > .card-canvas:first-child')[0].getBoundingClientRect();
+      this.offsetNX = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().left - this.placeholderNorthRect.left;
+      this.offsetNY = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().top - this.placeholderNorthRect.top;
+
+      this.offsetEX = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().left - this.placeholderEastRect.left;
+      this.offsetEY = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().top - this.placeholderEastRect.top;
+
+      this.offsetWX = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().left - this.placeholderWestRect.left;
+      this.offsetWY = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().top - this.placeholderWestRect.top;
     }, 500);
   }
 
 
   cardClick(card: Card): boolean {
+    if (this.player != this.Players[2]) {
+      return false; // Only allowed when it's your turn
+    }
 //    if (card.type === this.troef) {
       this.moveCard[card.id] = true;
       card.x = this.offsetX;
       card.y = this.offsetSY;
       card.used = true;
       this.cardSouth = card;
-//      this.otherPlays(card);
     this.nextPlayer();
     if (this.numberOfPlayed === 4) {
       this.endOfRound();
     } else {
       this.nextTurn();
     }
-//    }
     return true;
   }
 
@@ -191,7 +184,7 @@ export class HomeComponent implements OnInit {
           if (this.numberOfPlayed === 4) {
             this.endOfRound();
           } else {
-//            this.nextTurn();
+            // enable players cards
           }
         }, 1000);
         break;
@@ -217,13 +210,10 @@ export class HomeComponent implements OnInit {
   }
 
   endOfRound() {
-    console.log('endOfRound 0');
     setTimeout(() => {
-      console.log('endOfRound 1');
       const winnerNr: number = Math.floor(Math.random() * 4);
       const won = [this.placeholderNorthRect, this.placeholderEastRect, this.placeholderSouthRect, this.placeholderWestRect][winnerNr];
       if (this.cardNorth && this.cardEast && this.cardEast && this.cardSouth && this.cardWest) {
-        console.log('endOfRound 3', winnerNr);
         this.cardNorth.x = won.left - this.placeholderNorthRect.left;
         this.cardNorth.y = won.top - this.placeholderNorthRect.top;
         this.cardEast.x = won.left - this.placeholderEastRect.left;
@@ -237,55 +227,6 @@ export class HomeComponent implements OnInit {
       this.numberOfPlayed = 0;
       this.nextTurn();
     }, 2000);
-  }
-
-  otherPlays(cardSouth: Card) {
-    let cardNorth: Card;
-    let cardEast: Card;
-    let cardWest: Card;
-
-    setTimeout(() => {
-      const card: Card | undefined = this.cardsOfWest.filter(c => !c.used)[0];
-      if (card) {
-        this.moveCard[card.id] = true;
-        card.x = this.offsetWX;
-        card.y = this.offsetWY;
-        card.used = true;
-        cardWest = card;
-      }
-    }, 1000)
-    setTimeout(() => {
-      const card: Card | undefined = this.cardsOfNorth.filter(c => !c.used)[0];
-      if (card) {
-        this.moveCard[card.id] = true;
-        card.x = this.offsetNX;
-        card.y = this.offsetNY;
-        card.used = true;
-        cardNorth = card;
-      }
-    }, 2000)
-    setTimeout(() => {
-      const card: Card | undefined = this.cardsOfEast.filter(c => !c.used)[0];
-      if (card) {
-        this.moveCard[card.id] = true;
-        card.x = this.offsetEX;
-        card.y = this.offsetEY;
-        card.used = true;
-        cardEast = card;
-      }
-    }, 3000);
-
-    setTimeout(() => {
-      const won = [this.placeholderNorthRect, this.placeholderEastRect, this.placeholderSouthRect, this.placeholderWestRect][Math.floor(Math.random() * 4)];
-      cardNorth.x = won.left - this.placeholderNorthRect.left;
-      cardNorth.y = won.top - this.placeholderNorthRect.top;
-      cardEast.x =  won.left - this.placeholderEastRect.left;
-      cardEast.y =  won.top - this.placeholderEastRect.top;
-      cardSouth.x = won.left - this.placeholderSouthRect.left + this.offsetX;
-      cardSouth.y = won.top - this.placeholderPlayerRect.top;
-      cardWest.x =  won.left - this.placeholderWestRect.left;
-      cardWest.y =  won.top - this.placeholderWestRect.top;
-    }, 5000);
   }
 
   private nextPlayer() {
