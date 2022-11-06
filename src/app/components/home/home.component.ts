@@ -7,6 +7,10 @@ import {Card, SUIT} from "../../models/model";
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
+  Players: string[] = ['North', 'East', 'South', 'West'];
+  player: string = this.Players[2];
+  numberOfPlayed: number = 0;
+
   cards: Card[] = [];
   spread: number[] = [];
   nr: number = 0;
@@ -29,11 +33,16 @@ export class HomeComponent implements OnInit {
   offsetWX: number = 0;
   offsetWY: number = 0;
 
-  placeholderNordRect: any;
+  placeholderNorthRect: any;
   placeholderEastRect: any;
   placeholderSouthRect: any;
   placeholderWestRect: any;
   placeholderPlayerRect: any;
+
+  cardNorth?: Card;
+  cardEast?: Card;
+  cardSouth?: Card;
+  cardWest?: Card;
 
 
   constructor(private elementRef: ElementRef) { }
@@ -120,7 +129,7 @@ export class HomeComponent implements OnInit {
       this.offsetWY = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().top -
           this.elementRef.nativeElement.querySelector('.placeholder-w').getBoundingClientRect().top;
 
-      this.placeholderNordRect = this.elementRef.nativeElement.querySelector('.placeholder-n > .card-canvas:first-child').getBoundingClientRect();
+      this.placeholderNorthRect = this.elementRef.nativeElement.querySelector('.placeholder-n > .card-canvas:first-child').getBoundingClientRect();
       this.placeholderEastRect = this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect();
       this.placeholderSouthRect = this.elementRef.nativeElement.querySelector('.placeholder-s > .card-canvas:first-child').getBoundingClientRect();
       this.placeholderWestRect = this.elementRef.nativeElement.querySelector('.placeholder-w').getBoundingClientRect();
@@ -136,21 +145,99 @@ export class HomeComponent implements OnInit {
       card.x = this.offsetX;
       card.y = this.offsetSY;
       card.used = true;
-      this.otherPlays(card);
+      this.cardSouth = card;
+//      this.otherPlays(card);
+    this.nextPlayer();
+    if (this.numberOfPlayed === 4) {
+      this.endOfRound();
+    } else {
+      this.nextTurn();
+    }
 //    }
     return true;
   }
 
-  play(starter: number) {
-    for (let i: number = starter; i < starter + 4; i++) {
-      setTimeout(() => {
-        switch (i % 4) {
-          case 0:
-            break;
-        }
-      }, i * 1000);
+  nextTurn() {
+    switch (this.player) {
+      case this.Players[0]:
+        setTimeout(() => {
+          const card: Card | undefined = this.cardsOfNorth.filter(c => !c.used)[0];
+          if (card) {
+            this.moveCard[card.id] = true;
+            card.x = this.offsetNX;
+            card.y = this.offsetNY;
+            card.used = true;
+            this.cardNorth = card;
+          }
+          this.nextPlayer();
+          if (this.numberOfPlayed === 4) {
+            this.endOfRound();
+          } else {
+            this.nextTurn();
+          }
+        }, 1000);
+        break;
+      case this.Players[1]:
+        setTimeout(() => {
+          const card: Card | undefined = this.cardsOfEast.filter(c => !c.used)[0];
+          if (card) {
+            this.moveCard[card.id] = true;
+            card.x = this.offsetEX;
+            card.y = this.offsetEY;
+            card.used = true;
+            this.cardEast = card;
+          }
+          this.nextPlayer();
+          if (this.numberOfPlayed === 4) {
+            this.endOfRound();
+          } else {
+//            this.nextTurn();
+          }
+        }, 1000);
+        break;
+      case this.Players[3]:
+        setTimeout(() => {
+          const card: Card | undefined = this.cardsOfWest.filter(c => !c.used)[0];
+          if (card) {
+            this.moveCard[card.id] = true;
+            card.x = this.offsetWX;
+            card.y = this.offsetWY;
+            card.used = true;
+            this.cardWest = card;
+          }
+          this.nextPlayer();
+          if (this.numberOfPlayed === 4) {
+            this.endOfRound();
+          } else {
+            this.nextTurn();
+          }
+        }, 1000);
+        break;
     }
-  };
+  }
+
+  endOfRound() {
+    console.log('endOfRound 0');
+    setTimeout(() => {
+      console.log('endOfRound 1');
+      const winnerNr: number = Math.floor(Math.random() * 4);
+      const won = [this.placeholderNorthRect, this.placeholderEastRect, this.placeholderSouthRect, this.placeholderWestRect][winnerNr];
+      if (this.cardNorth && this.cardEast && this.cardEast && this.cardSouth && this.cardWest) {
+        console.log('endOfRound 3', winnerNr);
+        this.cardNorth.x = won.left - this.placeholderNorthRect.left;
+        this.cardNorth.y = won.top - this.placeholderNorthRect.top;
+        this.cardEast.x = won.left - this.placeholderEastRect.left;
+        this.cardEast.y = won.top - this.placeholderEastRect.top;
+        this.cardSouth.x = won.left - this.placeholderSouthRect.left + this.offsetX;
+        this.cardSouth.y = won.top - this.placeholderPlayerRect.top;
+        this.cardWest.x = won.left - this.placeholderWestRect.left;
+        this.cardWest.y = won.top - this.placeholderWestRect.top;
+      }
+      this.player = this.Players[winnerNr];
+      this.numberOfPlayed = 0;
+      this.nextTurn();
+    }, 2000);
+  }
 
   otherPlays(cardSouth: Card) {
     let cardNorth: Card;
@@ -189,9 +276,9 @@ export class HomeComponent implements OnInit {
     }, 3000);
 
     setTimeout(() => {
-      const won = this.placeholderSouthRect;
-      cardNorth.x = won.left - this.placeholderNordRect.left;
-      cardNorth.y = won.top - this.placeholderNordRect.top;
+      const won = [this.placeholderNorthRect, this.placeholderEastRect, this.placeholderSouthRect, this.placeholderWestRect][Math.floor(Math.random() * 4)];
+      cardNorth.x = won.left - this.placeholderNorthRect.left;
+      cardNorth.y = won.top - this.placeholderNorthRect.top;
       cardEast.x =  won.left - this.placeholderEastRect.left;
       cardEast.y =  won.top - this.placeholderEastRect.top;
       cardSouth.x = won.left - this.placeholderSouthRect.left + this.offsetX;
@@ -199,6 +286,13 @@ export class HomeComponent implements OnInit {
       cardWest.x =  won.left - this.placeholderWestRect.left;
       cardWest.y =  won.top - this.placeholderWestRect.top;
     }, 5000);
+  }
+
+  private nextPlayer() {
+    let playerIndex = this.Players.indexOf(this.player);
+    playerIndex = playerIndex === 3 ? 0 : playerIndex + 1;
+    this.player = this.Players[playerIndex];
+    this.numberOfPlayed++;
   }
 
 }
