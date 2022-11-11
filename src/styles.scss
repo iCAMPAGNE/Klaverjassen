@@ -15,10 +15,10 @@ body {
     background-color: $body_background_color;
     width: $body_width;
     height: $body_height;
+    overflow-y: hidden;
 }
 
 div.card-columns {
-    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -30,15 +30,15 @@ div.card-columns {
     }
 
     > .second-column {
-        width: 100%;
+        width: $available_width;
     }
 }
 
 div.playField {
-    width: 100%;
-    height: 90%;
-    margin-top: -35%;
-    margin-left: -9%;
+    width: $available_width;
+    height: $available_height;
+    margin-top: -55vh;
+    margin-left: -8vw;
 }
 
 div.cards-pile {
@@ -46,27 +46,26 @@ div.cards-pile {
 }
 
 div.cards-row {
-    width:100%;
     display: flex;
     justify-content: space-around;
 
     &.placeholder-n {
-        margin-top: 25%;
+        margin-top: 20vw;
     }
     &.placeholder-player {
-        width: 70%;
-        margin: 5% 0 0 10%;
+        width: 65vw;
+        margin: 5vh 0 0 10vh;
         > .card-canvas {
-            margin: 0 0.5%;
+            margin: 0 0.5vw;
         }
     }
     &.placeholder-w, &.placeholder-e {
         width: $card_width;
-        margin-top: 130%;
+        margin-top: 6vw;
     }
 
     &.placeholder-s {
-        margin-top: 1%;
+        margin-top: 10vh;
     }
 }
 
@@ -82,11 +81,7 @@ div.card-placeholder {
 }
 
 div.way {
-    width: 100%;
-}
-
-div.cards-area {
-    width: 100%;
+    width: 10vw;
 }
 
 .card-format {
@@ -105,9 +100,9 @@ div.cover-done-pile {
 div.cover-done-pile-player {
     position: absolute;
     z-index: 10;
-    width: 100%;
+    width: 95vw;
     height: $card_height;
-    padding-top: 1%;
+    margin-top: 10vh;
     background-color: $body_background_color;
 }
 
@@ -121,7 +116,6 @@ div.cover-done-pile-player {
 }
 
 div.score-board {
-    width: 100%;
     height: 100%;
     background-color: #889988;
     border-radius: 3%;
