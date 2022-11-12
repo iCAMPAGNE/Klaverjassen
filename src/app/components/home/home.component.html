@@ -36,9 +36,9 @@
 
             <div class="cards-row placeholder-player">
                 <div *ngFor="let card of placeholdersZ let i = index;" class="card-canvas">
-                    <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': moveCard[card.id]}"
-                         style="--offsetx: {{(card.x || 0) - i*offsetSouthXdiff}}px; --offsety: {{card.y}}px;"
-                         (click)="cardClick(card)"/>
+                    <button id="card-{{card.id}}" class="card-button" [ngClass]="{'move-card': moveCard[card.id]}"
+                            style="background-image: url({{card.imageUrl}}); --offsetx: {{(card.x || 0) - i*offsetSouthXdiff}}px; --offsety: {{card.y}}px;"
+                            [disabled]="isCardDisabled(card)" (click)="cardClick(card)"></button>
                 </div>
             </div>
 
@@ -55,6 +55,11 @@
                         <col>
                         <col>
                         <col>
+                        <tr>
+                            <td>Troef</td>
+                            <td>{{troefSymbol}}</td>
+                            <td></td>
+                        </tr>
                         <tr>
                             <th></th>
                             <th>N/Z</th>

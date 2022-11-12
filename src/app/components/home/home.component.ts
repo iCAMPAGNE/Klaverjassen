@@ -1,5 +1,5 @@
 import { Component, ElementRef, OnInit } from '@angular/core';
-import {Card, SUIT} from "../../models/model";
+import {Card, SUIT, SUITS} from "../../models/model";
 
 @Component({
   selector: 'app-home',
@@ -19,6 +19,7 @@ export class HomeComponent implements OnInit {
   cardsOfWest: Card[] = [];
   placeholdersZ: Card[] = [];
   troef: SUIT = SUIT.SPADES;
+  troefSymbol: string = SUITS.SPADES.symbol;
   moveCard: boolean[] = [];
   offsetSouthX: number = 0;
   offsetSouthXdiff: number = 0;
@@ -154,6 +155,16 @@ export class HomeComponent implements OnInit {
       this.nextTurn();
     }
     return true;
+  }
+
+  isCardDisabled(card: Card): boolean {
+    if (!this.moveCard[card.id] && (this.player != this.Players[2] || this.numberOfPlayed === 4)) {
+      return true;
+    }
+    if (this.placeholdersZ.every(c => c.used || c.type !== this.troef)) {
+      return false;
+    }
+    return card.type !== this.troef;
   }
 
   nextTurn() {

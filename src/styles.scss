@@ -89,6 +89,18 @@ div.way {
     height: $card_height;
 }
 
+button.card-button {
+    width: $card_width;
+    height: $card_height;
+    border: none;
+    border-radius: 5%;
+    background-size: cover;
+
+    &:disabled {
+        opacity: 60%;
+    }
+}
+
 div.cover-done-pile {
     position: absolute;
     width: $card_width * 2;
@@ -130,7 +142,6 @@ div.score-board {
             &:nth-child(2), &:nth-child(3) {
                 width: 20%;
                 text-align: center;
-                padding: 0 0%;
             }
         }
     }
