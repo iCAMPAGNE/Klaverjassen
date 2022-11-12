@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit } from '@angular/core';
+import {AfterViewInit, Component, ElementRef, OnInit} from '@angular/core';
 import {Card, SUIT, SUITS} from "../../models/model";
 
 @Component({
@@ -6,7 +6,7 @@ import {Card, SUIT, SUITS} from "../../models/model";
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, AfterViewInit {
   Players: string[] = ['North', 'East', 'South', 'West'];
   player: string = this.Players[2];
   numberOfPlayed: number = 0;
@@ -20,7 +20,6 @@ export class HomeComponent implements OnInit {
   placeholdersZ: Card[] = [];
   troef: SUIT = SUIT.SPADES;
   troefSymbol: string = SUITS.SPADES.symbol;
-  moveCard: boolean[] = [];
   offsetSouthX: number = 0;
   offsetSouthXdiff: number = 0;
   offsetSouthY: number = 0;
@@ -82,11 +81,6 @@ export class HomeComponent implements OnInit {
           value: value,
           imageUrl: imageUrl,
           type: suit,
-          clubOrSpade: clubOrSpade,
-          pileNr: 5,
-          searching: false,
-          turning: false,
-          turned: false,
           moving: false,
           used: false
         });
@@ -110,44 +104,40 @@ export class HomeComponent implements OnInit {
       this.cardsOfWest.push(this.cards[this.spread[spreadNr]]);
       this.spread.splice(spreadNr, 1);
     }
-
-    setTimeout(() => {
-      const placeholderSouth = this.elementRef.nativeElement.querySelector('.south').getBoundingClientRect();
-      const placeholderS = this.elementRef.nativeElement.querySelector('.placeholder-player').getBoundingClientRect();
-      this.placeholderPlayerRect = this.elementRef.nativeElement.querySelector('.placeholder-player > .card-canvas:first-child').getBoundingClientRect();
-      const secondSouthCard = this.elementRef.nativeElement.querySelector('.placeholder-player > .card-canvas:nth-child(2)').getBoundingClientRect();
-
-      this.placeholderNorthRect = this.elementRef.nativeElement.querySelector('.placeholder-n > .card-canvas:first-child').getBoundingClientRect();
-      this.placeholderEastRect =  this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect();
-      this.placeholderSouthRect = this.elementRef.nativeElement.querySelector('.placeholder-s > .card-canvas:first-child').getBoundingClientRect();
-      this.placeholderWestRect =  this.elementRef.nativeElement.querySelector('.placeholder-w').getBoundingClientRect();
-
-      this.offsetNorthX = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().left - this.placeholderNorthRect.left;
-      this.offsetNorthY = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().top - this.placeholderNorthRect.top;
-
-      this.offsetEastX = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().left - this.placeholderEastRect.left;
-      this.offsetEastY = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().top - this.placeholderEastRect.top;
-
-      this.offsetSouthX =  placeholderSouth.left - this.placeholderPlayerRect.left;
-      this.offsetSouthXdiff = secondSouthCard.left - this.placeholderPlayerRect.left;
-      this.offsetSouthY = placeholderSouth.top - placeholderS.top;
-
-      this.offsetWestX = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().left - this.placeholderWestRect.left;
-      this.offsetWestY = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().top - this.placeholderWestRect.top;
-    }, 500);
   }
+
+  ngAfterViewInit(): void {
+    const placeholderSouth = this.elementRef.nativeElement.querySelector('.south').getBoundingClientRect();
+    const placeholderS = this.elementRef.nativeElement.querySelector('.placeholder-player').getBoundingClientRect();
+    this.placeholderPlayerRect = this.elementRef.nativeElement.querySelector('.placeholder-player > .card-canvas:first-child').getBoundingClientRect();
+    const secondSouthCard = this.elementRef.nativeElement.querySelector('.placeholder-player > .card-canvas:nth-child(2)').getBoundingClientRect();
+
+    this.placeholderNorthRect = this.elementRef.nativeElement.querySelector('.placeholder-n > .card-canvas:first-child').getBoundingClientRect();
+    this.placeholderEastRect =  this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect();
+    this.placeholderSouthRect = this.elementRef.nativeElement.querySelector('.placeholder-s > .card-canvas:first-child').getBoundingClientRect();
+    this.placeholderWestRect =  this.elementRef.nativeElement.querySelector('.placeholder-w').getBoundingClientRect();
+
+    this.offsetNorthX = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().left - this.placeholderNorthRect.left;
+    this.offsetNorthY = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().top - this.placeholderNorthRect.top;
+
+    this.offsetEastX = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().left - this.placeholderEastRect.left;
+    this.offsetEastY = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().top - this.placeholderEastRect.top;
+
+    this.offsetSouthX =  placeholderSouth.left - this.placeholderPlayerRect.left;
+    this.offsetSouthXdiff = secondSouthCard.left - this.placeholderPlayerRect.left;
+    this.offsetSouthY = placeholderSouth.top - placeholderS.top;
+
+    this.offsetWestX = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().left - this.placeholderWestRect.left;
+    this.offsetWestY = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().top - this.placeholderWestRect.top;
+  };
 
 
   cardClick(card: Card): boolean {
-    if (this.player != this.Players[2] || this.numberOfPlayed === 4) {
-      return false; // Only allowed when it's your turn
-    }
-//    if (card.type === this.troef) {
-      this.moveCard[card.id] = true;
-      card.x = this.offsetSouthX;
-      card.y = this.offsetSouthY;
-      card.used = true;
-      this.cardSouth = card;
+    card.x = this.offsetSouthX;
+    card.y = this.offsetSouthY;
+    card.used = true;
+    card.moving = true;
+    this.cardSouth = card;
     this.nextPlayer();
     if (this.numberOfPlayed === 4) {
       this.endOfRound();
@@ -158,13 +148,38 @@ export class HomeComponent implements OnInit {
   }
 
   isCardDisabled(card: Card): boolean {
-    if (!this.moveCard[card.id] && (this.player != this.Players[2] || this.numberOfPlayed === 4)) {
-      return true;
-    }
-    if (this.placeholdersZ.every(c => c.used || c.type !== this.troef)) {
+    if (card.moving) {
       return false;
     }
-    return card.type !== this.troef;
+    if (this.player != this.Players[2] || this.numberOfPlayed === 4) {
+      return true; // Disable all cards if it's not your turn
+    }
+
+    // If you start the round, every card is allowed
+    if (this.numberOfPlayed === 0) {
+      return false;
+    }
+
+    const suitPreviousPlayer: SUIT | undefined = this.cardsOfEast.find(c => c.moving)?.type;
+
+    // If possible, use same suit as previous player
+    if (card.type === suitPreviousPlayer) {
+      return false;
+    }
+
+    // If player can't follow suit, try 'troef'
+    if (this.placeholdersZ.every(c => c.used || c.type !== suitPreviousPlayer)) {
+      if (card.type === this.troef) {
+        return false;
+      } else {
+        if (this.placeholdersZ.every(c => c.used || c.type !== this.troef)) {
+          return false;
+        }
+      }
+    }
+    // return card.type !== this.troef;
+
+    return true;
   }
 
   nextTurn() {
@@ -173,9 +188,9 @@ export class HomeComponent implements OnInit {
         setTimeout(() => {
           const card: Card | undefined = this.cardsOfNorth.filter(c => !c.used)[0];
           if (card) {
-            this.moveCard[card.id] = true;
             card.x = this.offsetNorthX;
             card.y = this.offsetNorthY;
+            card.moving = true;
             card.used = true;
             this.cardNorth = card;
           }
@@ -191,9 +206,9 @@ export class HomeComponent implements OnInit {
         setTimeout(() => {
           const card: Card | undefined = this.cardsOfEast.filter(c => !c.used)[0];
           if (card) {
-            this.moveCard[card.id] = true;
             card.x = this.offsetEastX;
             card.y = this.offsetEastY;
+            card.moving = true;
             card.used = true;
             this.cardEast = card;
           }
@@ -209,10 +224,10 @@ export class HomeComponent implements OnInit {
         setTimeout(() => {
           const card: Card | undefined = this.cardsOfWest.filter(c => !c.used)[0];
           if (card) {
-            this.moveCard[card.id] = true;
             card.x = this.offsetWestX;
             card.y = this.offsetWestY;
             card.used = true;
+            card.moving = true;
             this.cardWest = card;
           }
           this.nextPlayer();
@@ -242,6 +257,7 @@ export class HomeComponent implements OnInit {
       }
       this.player = this.Players[winnerNr];
       this.numberOfPlayed = 0;
+      this.cards.forEach(c => c.moving = false);
       this.nextTurn();
     }, 2000);
   }

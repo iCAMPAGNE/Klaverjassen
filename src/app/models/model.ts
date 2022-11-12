@@ -4,11 +4,6 @@ export interface Card {
     value: number;
     imageUrl: string;
     type: SUIT;
-    clubOrSpade: boolean;
-    pileNr: number;
-    searching: boolean;
-    turning: boolean;
-    turned: boolean;
     moving: boolean;
     x?: number;
     y?: number;
