@@ -18,8 +18,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   cardsOfEast: Card[] = [];
   cardsOfWest: Card[] = [];
   placeholdersZ: Card[] = [];
-  troef: SUIT = SUIT.SPADES;
-  troefSymbol: string = SUITS.SPADES.symbol;
+  troef: SUIT = SUIT.CLUBS;
+  troefSymbol: string = SUITS.CLUBS.symbol;
   offsetSouthX: number = 0;
   offsetSouthXdiff: number = 0;
   offsetSouthY: number = 0;
@@ -49,13 +49,24 @@ export class HomeComponent implements OnInit, AfterViewInit {
   roemNorthSouth: number = 0;
   roemEastWest: number = 0;
 
+  round: number = 1;
+
+  message: string = '';
+
 
   constructor(private elementRef: ElementRef) { }
 
   ngOnInit(): void {
+    this.startRound();
+  }
+
+  ngAfterViewInit(): void {
+  };
+
+  private startRound() {
+    this.cards = [];
     Object.values(SUIT).forEach((suit:SUIT) => {
       for (let value = 7; value <= 14; value++) {
-        const clubOrSpade: boolean = ['clubs', 'spades'].indexOf(suit) >= 0;
         let imageUrl = 'assets/img/';
         switch (value) {
           case 11:
@@ -82,12 +93,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
           imageUrl: imageUrl,
           type: suit,
           moving: false,
-          used: false
+          used: false,
+          score: 0
         });
         this.spread.push(this.cards.length - 1);
       }
     });
 
+    this.placeholdersZ = [];
     for (let i = 0; i < 8; i++) {
       let spreadNr = Math.floor(Math.random() * this.spread.length);
       const card: Card = this.cards[this.spread[spreadNr]];
@@ -104,33 +117,33 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.cardsOfWest.push(this.cards[this.spread[spreadNr]]);
       this.spread.splice(spreadNr, 1);
     }
+
+    setTimeout(() => {
+      const placeholderSouth = this.elementRef.nativeElement.querySelector('.south').getBoundingClientRect();
+      const placeholderS = this.elementRef.nativeElement.querySelector('.placeholder-player').getBoundingClientRect();
+      this.placeholderPlayerRect = this.elementRef.nativeElement.querySelector('.placeholder-player > .card-canvas:first-child').getBoundingClientRect();
+      const secondSouthCard = this.elementRef.nativeElement.querySelector('.placeholder-player > .card-canvas:nth-child(2)').getBoundingClientRect();
+
+      this.placeholderNorthRect = this.elementRef.nativeElement.querySelector('.placeholder-n > .card-canvas:first-child').getBoundingClientRect();
+      this.placeholderEastRect =  this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect();
+      this.placeholderSouthRect = this.elementRef.nativeElement.querySelector('.placeholder-s > .card-canvas:first-child').getBoundingClientRect();
+      this.placeholderWestRect =  this.elementRef.nativeElement.querySelector('.placeholder-w').getBoundingClientRect();
+
+      this.offsetNorthX = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().left - this.placeholderNorthRect.left;
+      this.offsetNorthY = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().top - this.placeholderNorthRect.top;
+
+      this.offsetEastX = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().left - this.placeholderEastRect.left;
+      this.offsetEastY = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().top - this.placeholderEastRect.top;
+
+      this.offsetSouthX =  placeholderSouth.left - this.placeholderPlayerRect.left;
+      this.offsetSouthXdiff = secondSouthCard.left - this.placeholderPlayerRect.left;
+      this.offsetSouthY = placeholderSouth.top - placeholderS.top;
+
+      this.offsetWestX = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().left - this.placeholderWestRect.left;
+      this.offsetWestY = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().top - this.placeholderWestRect.top;
+
+    }, 1000)
   }
-
-  ngAfterViewInit(): void {
-    const placeholderSouth = this.elementRef.nativeElement.querySelector('.south').getBoundingClientRect();
-    const placeholderS = this.elementRef.nativeElement.querySelector('.placeholder-player').getBoundingClientRect();
-    this.placeholderPlayerRect = this.elementRef.nativeElement.querySelector('.placeholder-player > .card-canvas:first-child').getBoundingClientRect();
-    const secondSouthCard = this.elementRef.nativeElement.querySelector('.placeholder-player > .card-canvas:nth-child(2)').getBoundingClientRect();
-
-    this.placeholderNorthRect = this.elementRef.nativeElement.querySelector('.placeholder-n > .card-canvas:first-child').getBoundingClientRect();
-    this.placeholderEastRect =  this.elementRef.nativeElement.querySelector('.placeholder-e').getBoundingClientRect();
-    this.placeholderSouthRect = this.elementRef.nativeElement.querySelector('.placeholder-s > .card-canvas:first-child').getBoundingClientRect();
-    this.placeholderWestRect =  this.elementRef.nativeElement.querySelector('.placeholder-w').getBoundingClientRect();
-
-    this.offsetNorthX = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().left - this.placeholderNorthRect.left;
-    this.offsetNorthY = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().top - this.placeholderNorthRect.top;
-
-    this.offsetEastX = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().left - this.placeholderEastRect.left;
-    this.offsetEastY = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().top - this.placeholderEastRect.top;
-
-    this.offsetSouthX =  placeholderSouth.left - this.placeholderPlayerRect.left;
-    this.offsetSouthXdiff = secondSouthCard.left - this.placeholderPlayerRect.left;
-    this.offsetSouthY = placeholderSouth.top - placeholderS.top;
-
-    this.offsetWestX = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().left - this.placeholderWestRect.left;
-    this.offsetWestY = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().top - this.placeholderWestRect.top;
-  };
-
 
   cardClick(card: Card): boolean {
     card.x = this.offsetSouthX;
@@ -140,7 +153,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.cardSouth = card;
     this.nextPlayer();
     if (this.numberOfPlayed === 4) {
-      this.endOfRound();
+      this.endOfBattle();
     } else {
       this.nextTurn();
     }
@@ -196,7 +209,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
           }
           this.nextPlayer();
           if (this.numberOfPlayed === 4) {
-            this.endOfRound();
+            this.endOfBattle();
           } else {
             this.nextTurn();
           }
@@ -214,7 +227,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
           }
           this.nextPlayer();
           if (this.numberOfPlayed === 4) {
-            this.endOfRound();
+            this.endOfBattle();
           } else {
             // enable players cards
           }
@@ -232,7 +245,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
           }
           this.nextPlayer();
           if (this.numberOfPlayed === 4) {
-            this.endOfRound();
+            this.endOfBattle();
           } else {
             this.nextTurn();
           }
@@ -241,9 +254,22 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
   }
 
-  endOfRound() {
+  endOfBattle() {
+    const winningCard: Card =
+        this.cards.filter((card: Card) => card.moving)
+            .map(card => this.calculatePoints(card))
+            .reduce((highestScoreCard, currentCard) => currentCard.score > highestScoreCard.score ? currentCard : highestScoreCard);
+
+    this.message = 'Punten:<br>'
+        + 'North: ' + (this.cardNorth?.type == this.troef) + ', ' + (this.cardNorth?.value) + ': ' + (this.cardNorth ? this.calculatePoints(this.cardNorth).score : '') + '<br>'
+        + 'East:  ' +  (this.cardEast?.type == this.troef) + ', ' + (this.cardEast?.value) + ': ' + (this.cardEast ? this.calculatePoints(this.cardEast).score : '') + '<br>'
+        + 'South: ' +  (this.cardSouth?.type == this.troef) + ', ' + (this.cardSouth?.value) + ': ' + (this.cardSouth ? this.calculatePoints(this.cardSouth).score : '') + '<br>'
+        + 'West:  ' +  (this.cardWest?.type == this.troef) + ', ' + (this.cardWest?.value) + ': ' + (this.cardWest ? this.calculatePoints(this.cardWest).score : '') + '<br>'
+    ;
     setTimeout(() => {
-      const winnerNr: number = Math.floor(Math.random() * 4);
+      const winnerNr: number =
+          this.cardsOfNorth.includes(winningCard) ? 0 : this.cardsOfEast.includes(winningCard) ? 1 : this.cardsOfWest.includes(winningCard) ? 3 : 2;
+
       const won = [this.placeholderNorthRect, this.placeholderEastRect, this.placeholderSouthRect, this.placeholderWestRect][winnerNr];
       if (this.cardNorth && this.cardEast && this.cardEast && this.cardSouth && this.cardWest) {
         this.cardNorth.x = won.left - this.placeholderNorthRect.left;
@@ -255,11 +281,27 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.cardWest.x = won.left - this.placeholderWestRect.left;
         this.cardWest.y = won.top - this.placeholderWestRect.top;
       }
+      const totalScore = this.cards.filter((card: Card) => card.moving).map(card => this.calculatePoints(card).score).reduce((totalScore: number, cardScore) => totalScore + cardScore);
+      if ([0,2].includes(winnerNr)) {
+        this.scoreNorthSouth += totalScore;
+      } else {
+        this.scoreEastWest += totalScore;
+      }
+
       this.player = this.Players[winnerNr];
       this.numberOfPlayed = 0;
       this.cards.forEach(c => c.moving = false);
+      this.message = 'Nog ' + this.cardsOfNorth.filter(card => !card.used).length;
+      if (this.cardsOfNorth.filter(card => !card.used).length == 0) {
+        if (++this.round > 3) {
+          this.message = 'Game over';
+        } else {
+          this.message += ' startRound';
+          this.startRound();
+        }
+      }
       this.nextTurn();
-    }, 2000);
+    }, 1000);
   }
 
   private nextPlayer() {
@@ -269,4 +311,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.numberOfPlayed++;
   }
 
+  private calculatePoints(card: Card): Card {
+    let pointsArray: number[][] = [[0,0,0,10,2,3,4,11],[0,0,14,10,20,3,4,11]];
+    card.score = pointsArray[card?.type == this.troef ? 1 : 0][(card?.value || 7) - 7];
+    return card;
+  }
 }

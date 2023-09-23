@@ -8,6 +8,7 @@ export interface Card {
     x?: number;
     y?: number;
     used: boolean;
+    score: number;
 }
 
 export interface Pile {
