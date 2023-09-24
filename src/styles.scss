@@ -3,11 +3,11 @@
 $available_width: 95vw;
 $available_height: 95vh;
 
-$body_width: $available_width;
-$body_height: $available_height;
+$body_height: min($available_height, $available_width / 1.3);
+$body_width: min($available_height * 1.3, $available_width);
 
-$card_height: math.div($body_height, 6);
-$card_width: math.div($card_height, 1.452);
+$card_height: calc($body_height / 6);
+$card_width: calc($card_height / 1.452);
 
 $body_background_color: #778877;
 
@@ -15,7 +15,69 @@ body {
     background-color: $body_background_color;
     width: $body_width;
     height: $body_height;
-    overflow-y: hidden;
+//    overflow-y: hidden;
+
+    div.left-column {
+        height: calc($body_height - ($body_height/2 - $card_height/2));
+        width: $card_width;
+        background-color: darkgreen;
+        padding-top: calc($body_height/2 - $card_height/2);
+    }
+
+    div.west-home {
+        height: $card_height;
+        width: $card_width;
+        background-color: burlywood;
+        //    margin-left: calc($card_width * -1);
+        //    padding-top: calc($body_height / 2);
+    }
+
+    div.middle-column {
+        height: 100%;
+        width: calc($body-width - 2*$card_width);
+        background-color: darkcyan;
+        //display: flex;
+        //justify-content: center;
+    }
+
+    div.center-area {
+        height: calc(3*$card_height);
+        width: calc(4*$card_width);
+        margin-left: calc($body_width/2 - 3*$card_width);
+        margin-top: calc($card_height/2);
+        background-color: darkorchid;
+    }
+}
+
+div.play-field {
+    width: $body_width;
+    height: $body_height;
+    display: flex;
+    //margin-top: -55vh;
+    //margin-left: -8vw;
+}
+
+div.north-home {
+    width: $card_width;
+    height: $card_height;
+    margin-left: calc($body_width/2 - 1.5*$card_width);
+    background-color: cornflowerblue;
+}
+
+div.south-home {
+    width: 100%;
+    height: $card_height;
+    margin-top: calc($body_height - 5.5*$card_height);
+//    margin-left: calc($body_width/2 - 1.5*$card_width);
+    background-color: cornflowerblue;
+}
+
+div.south-me {
+    margin-left: calc($body_width/2 - 1.5*$card_width);
+}
+
+div.north-play, div.south-play {
+    margin-left: calc(50% - 0.5*$card_width);
 }
 
 div.card-columns {
@@ -30,15 +92,8 @@ div.card-columns {
     }
 
     > .second-column {
-        width: $available_width;
+        width: $body_width;
     }
-}
-
-div.playField {
-    width: $available_width;
-    height: $available_height;
-    margin-top: -55vh;
-    margin-left: -8vw;
 }
 
 div.cards-pile {
@@ -49,24 +104,24 @@ div.cards-row {
     display: flex;
     justify-content: space-around;
 
-    &.placeholder-n {
-        margin-top: 20vw;
-    }
-    &.placeholder-player {
-        width: 65vw;
-        margin: 5vh 0 0 10vh;
-        > .card-canvas {
-            margin: 0 0.5vw;
-        }
-    }
-    &.placeholder-w, &.placeholder-e {
-        width: $card_width;
-        margin-top: 6vw;
-    }
-
-    &.placeholder-s {
-        margin-top: 10vh;
-    }
+    //&.placeholder-n {
+    //    margin-top: 20vw;
+    //}
+    //&.placeholder-player {
+    //    width: 65vw;
+    //    margin: 5vh 0 0 10vh;
+    //    > .card-canvas {
+    //        margin: 0 0.5vw;
+    //    }
+    //}
+    //&.placeholder-w, &.placeholder-e {
+    //    width: $card_width;
+    //    margin-top: 6vw;
+    //}
+    //
+    //&.placeholder-s {
+    //    margin-top: 10vh;
+    //}
 }
 
 div.card-placeholder {
@@ -103,8 +158,8 @@ button.card-button {
 
 div.cover-done-pile {
     position: absolute;
-    width: $card_width * 2;
-    height: $card_height * 2;
+    width: calc($card_width * 2);
+    height: calc($card_height * 2);
     z-index: 8;
     background-color: $body_background_color;
 }
