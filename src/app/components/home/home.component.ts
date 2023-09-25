@@ -7,6 +7,9 @@ import {Card, SUIT, SUITS} from "../../models/model";
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit, AfterViewInit {
+  showFullScreenButton: boolean = true;
+  showStartGameButton: boolean = false;
+
   Players: string[] = ['North', 'East', 'South', 'West'];
   player: string = this.Players[2];
   numberOfPlayed: number = 0;
@@ -57,11 +60,35 @@ export class HomeComponent implements OnInit, AfterViewInit {
   constructor(private elementRef: ElementRef) { }
 
   ngOnInit(): void {
-    this.startRound();
   }
+
+  openFullscreen() {
+    const elem = document.getElementById("main");
+    if (elem) {
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().then(() => {
+          this.showFullScreenButton = false;
+          setTimeout(() => {
+            this.showStartGameButton = true;
+          }, 500);
+        })
+
+        // } else if (elem.webkitRequestFullscreen) { /* Safari */
+        //   elem.webkitRequestFullscreen();
+        // } else if (elem.msRequestFullscreen) { /* IE11 */
+        //   elem.msRequestFullscreen();
+      }
+    }
+  }
+
 
   ngAfterViewInit(): void {
   };
+
+  startGame() {
+    this.showStartGameButton = false;
+    this.startRound();
+  }
 
   private startRound() {
     this.cards = [];
@@ -144,7 +171,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
       this.offsetWestX = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().left - this.placeholderWestRect.left;
       this.offsetWestY = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().top - this.placeholderWestRect.top;
-
     }, 1000)
   }
 
@@ -202,7 +228,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     switch (this.player) {
       case this.Players[0]:
         setTimeout(() => {
-          const card: Card | undefined = this.cardsOfNorth.filter(c => !c.used)[0];
+          const card: Card = this.cardsOfNorth.filter(c => !c.used)[0];
           if (card) {
             card.x = this.offsetNorthX;
             card.y = this.offsetNorthY;
@@ -220,7 +246,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         break;
       case this.Players[1]:
         setTimeout(() => {
-          const card: Card | undefined = this.cardsOfEast.filter(c => !c.used)[0];
+          const card: Card = this.cardsOfEast.filter(c => !c.used)[0];
           if (card) {
             card.x = this.offsetEastX;
             card.y = this.offsetEastY;
@@ -238,7 +264,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         break;
       case this.Players[3]:
         setTimeout(() => {
-          const card: Card | undefined = this.cardsOfWest.filter(c => !c.used)[0];
+          const card: Card = this.cardsOfWest.filter(c => !c.used)[0];
           if (card) {
             card.x = this.offsetWestX;
             card.y = this.offsetWestY;
@@ -302,19 +328,21 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.player = this.Players[winnerNr];
       this.numberOfPlayed = 0;
       this.cards.forEach(c => c.moving = false);
-      this.message = 'Nog ' + this.cardsOfNorth.filter(card => !card.used).length;
+      this.message = '';
       if (this.cardsOfNorth.filter(card => !card.used).length == 0) {
         if (++this.round > 3) {
           this.message = 'Game over';
         } else {
-          this.message += ' startRound';
+          this.message = 'Start ronde #' + this.round;
           setTimeout(() => {
             this.startRound();
+            this.nextTurn();
           }, 2000);
         }
+      } else {
+        this.nextTurn();
       }
-      this.nextTurn();
-    }, 5000);
+    }, 3000);
   }
 
   private nextPlayer() {

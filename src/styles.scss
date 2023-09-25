@@ -17,17 +17,22 @@ body {
     height: $body_height;
 //    overflow-y: hidden;
 
+    div.main {
+        padding-left: 10%;
+        background-color: $body_background_color;
+    }
+
     div.left-column {
         height: calc($body_height - ($body_height/2 - $card_height/2) - $card_height);
         width: $card_width;
-        background-color: darkgreen;
+//        background-color: darkgreen;
         padding-top: calc($body_height/2 - $card_height/2);
     }
 
     div.west-home {
         height: $card_height;
         width: $card_width;
-        background-color: burlywood;
+//        background-color: burlywood;
         //    margin-left: calc($card_width * -1);
         //    padding-top: calc($body_height / 2);
     }
@@ -35,7 +40,7 @@ body {
     div.middle-column {
         height: 100%;
         width: calc($body-width - 2*$card_width);
-        background-color: darkcyan;
+//        background-color: darkcyan;
         //display: flex;
         //justify-content: center;
     }
@@ -45,7 +50,7 @@ body {
         width: calc(4*$card_width);
         margin-left: calc($body_width/2 - 3*$card_width);
         margin-top: calc($card_height/2);
-        background-color: darkorchid;
+//        background-color: darkorchid;
     }
 }
 
@@ -61,7 +66,7 @@ div.north-home {
     width: $card_width;
     height: $card_height;
     margin-left: calc($body_width/2 - 1.5*$card_width);
-    background-color: cornflowerblue;
+//    background-color: cornflowerblue;
 }
 
 div.south-home {
@@ -69,7 +74,7 @@ div.south-home {
     height: $card_height;
 //    margin-top: calc($body_height - 5.5*$card_height);
 //    margin-left: calc($body_width/2 - 1.5*$card_width);
-    background-color: cornflowerblue;
+//    background-color: cornflowerblue;
 }
 
 div.south-me {
