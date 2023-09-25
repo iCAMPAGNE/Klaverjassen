@@ -42,20 +42,6 @@
                                 </div>
             </div>
         </div>
-        <div class="south-home">
-                        <div class="cards-row placeholder-player">
-                            <div *ngFor="let card of placeholdersZ let i = index;" class="card-canvas">
-                                <button id="card-{{card.id}}" class="card-button" [ngClass]="{'move-card': card.used}"
-                                        style="background-image: url({{card.imageUrl}}); --offsetx: {{(card.x || 0) - i*offsetSouthXdiff}}px; --offsety: {{card.y}}px;"
-                                        [disabled]="isCardDisabled(card)" (click)="cardClick(card)"></button>
-                            </div>
-                        </div>
-        </div>
-        <div class="card-format south-me">
-                        <div class="cards-row placeholder-s">
-                            <div class="cards-pile card-canvas card-format"></div>
-                        </div>
-        </div>
     </div>
     <div class="left-column">
         <div class="west-home">
@@ -161,5 +147,19 @@
 <!--            </div>-->
 <!--        </div>-->
 <!--    </div>-->
+</div>
+<div class="south-home">
+    <div class="cards-row placeholder-player">
+        <div *ngFor="let card of placeholdersZ; let i = index;" class="card-canvas">
+            <button id="card-{{card.id}}" class="card-button" [ngClass]="{'move-card': card.used}"
+                    style="background-image: url({{card.imageUrl}}); --offsetx: {{(card.x || 0) - i*offsetSouthXdiff}}px; --offsety: {{card.y}}px;"
+                    [disabled]="isCardDisabled(card)" (click)="cardClick(card)"></button>
+        </div>
+    </div>
+</div>
+<div class="card-format south-me" style="visibility: hidden; height: 0em !important;">
+    <div class="cards-row placeholder-s">
+        <div class="cards-pile card-canvas card-formatX"></div>
+    </div>
 </div>
 

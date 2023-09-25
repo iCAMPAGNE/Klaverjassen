@@ -101,6 +101,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
 
     this.placeholdersZ = [];
+    this.cardsOfNorth = [];
+    this.cardsOfEast = [];
+    this.cardsOfWest = [];
     for (let i = 0; i < 8; i++) {
       let spreadNr = Math.floor(Math.random() * this.spread.length);
       const card: Card = this.cards[this.spread[spreadNr]];
@@ -276,10 +279,18 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.cardNorth.y = won.top - this.placeholderNorthRect.top;
         this.cardEast.x = won.left - this.placeholderEastRect.left;
         this.cardEast.y = won.top - this.placeholderEastRect.top;
-        this.cardSouth.x = won.left - this.placeholderSouthRect.left + this.offsetSouthX;
+        this.cardSouth.x = won.left - this.placeholderSouthRect.left + this.offsetSouthX - 0.7*this.offsetSouthXdiff;
         this.cardSouth.y = won.top - this.placeholderPlayerRect.top;
         this.cardWest.x = won.left - this.placeholderWestRect.left;
         this.cardWest.y = won.top - this.placeholderWestRect.top;
+
+        setTimeout(() => {
+          // Todo: https://stackoverflow.com/questions/50908130/angular-5-add-style-to-specific-element-dynamically
+          (this.elementRef.nativeElement.querySelector('#card-' + this.cardNorth?.id) as HTMLElement).style.visibility = 'hidden';
+          (this.elementRef.nativeElement.querySelector('#card-' + this.cardEast?.id) as HTMLElement).style.visibility = 'hidden';
+          (this.elementRef.nativeElement.querySelector('#card-' + this.cardSouth?.id) as HTMLElement).style.visibility = 'hidden';
+          (this.elementRef.nativeElement.querySelector('#card-' + this.cardWest?.id) as HTMLElement).style.visibility = 'hidden';
+        }, 700);
       }
       const totalScore = this.cards.filter((card: Card) => card.moving).map(card => this.calculatePoints(card).score).reduce((totalScore: number, cardScore) => totalScore + cardScore);
       if ([0,2].includes(winnerNr)) {
@@ -297,11 +308,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
           this.message = 'Game over';
         } else {
           this.message += ' startRound';
-          this.startRound();
+          setTimeout(() => {
+            this.startRound();
+          }, 2000);
         }
       }
       this.nextTurn();
-    }, 1000);
+    }, 5000);
   }
 
   private nextPlayer() {

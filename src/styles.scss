@@ -18,7 +18,7 @@ body {
 //    overflow-y: hidden;
 
     div.left-column {
-        height: calc($body_height - ($body_height/2 - $card_height/2));
+        height: calc($body_height - ($body_height/2 - $card_height/2) - $card_height);
         width: $card_width;
         background-color: darkgreen;
         padding-top: calc($body_height/2 - $card_height/2);
@@ -51,7 +51,7 @@ body {
 
 div.play-field {
     width: $body_width;
-    height: $body_height;
+    height: calc($body_height - $card_height);
     display: flex;
     //margin-top: -55vh;
     //margin-left: -8vw;
@@ -65,9 +65,9 @@ div.north-home {
 }
 
 div.south-home {
-    width: 100%;
+    width: $body_width;
     height: $card_height;
-    margin-top: calc($body_height - 5.5*$card_height);
+//    margin-top: calc($body_height - 5.5*$card_height);
 //    margin-left: calc($body_width/2 - 1.5*$card_width);
     background-color: cornflowerblue;
 }
