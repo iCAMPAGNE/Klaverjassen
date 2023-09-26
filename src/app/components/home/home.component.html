@@ -10,6 +10,43 @@
         Start Game
     </button>
 
+    <div *ngIf="gameStarted"  class="score-board"
+            style="position: absolute; width: 10%; height: 25%; background-color: burlywood; border-radius: 1em; top:3%; left:60%; padding:1em;">
+                            <p style="width: 100%; text-align: center">Ronde {{round}} van 16</p>
+                            <table>
+                                <col>
+                                <col>
+                                <col>
+                                <tr>
+                                    <td>Troef</td>
+                                    <td class="troef-symbol">{{troefSymbol}}</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    <th>N/Z</th>
+                                    <th>O/W</th>
+                                </tr>
+                                <tr>
+                                    <td>Score</td>
+                                    <td>{{scoreNorthSouth}}</td>
+                                    <td>{{scoreEastWest}}</td>
+                                </tr>
+                                <tr>
+                                    <td>Roem</td>
+                                    <td>{{roemNorthSouth}}</td>
+                                    <td>{{roemEastWest}}</td>
+                                </tr>
+                                <tr>
+                                    <td>Totaal</td>
+                                    <td>{{scoreNorthSouth + roemNorthSouth}}</td>
+                                    <td>{{scoreEastWest + roemEastWest}}</td>
+                                </tr>
+                            </table>
+                        <br>
+<!--                        <div [innerHtml]="message"></div>-->
+    </div>
+
     <div class="play-field">
         <div class="left-column">
             <div class="west-home">

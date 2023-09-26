@@ -9,6 +9,7 @@ import {Card, SUIT, SUITS} from "../../models/model";
 export class HomeComponent implements OnInit, AfterViewInit {
   showFullScreenButton: boolean = true;
   showStartGameButton: boolean = false;
+  gameStarted: boolean = false;
 
   Players: string[] = ['North', 'East', 'South', 'West'];
   player: string = this.Players[2];
@@ -87,6 +88,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   startGame() {
     this.showStartGameButton = false;
+    this.gameStarted = true;
     this.startRound();
   }
 
