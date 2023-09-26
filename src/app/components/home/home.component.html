@@ -1,18 +1,12 @@
 <div id="main" class="main">
-    <button *ngIf="showFullScreenButton" (click)="openFullscreen()"
+    <button *ngIf="showingFullScreen()" (click)="openFullscreen()"
             style="width: 15em; height: 4em; text-align: center; align-content: space-around; font-size: large; border-radius: 0.5em; position:absolute;
-        top: 45%; left: 38%">
+        top: 5%; left: 5%">
         Klik hier voor volledig scherm
     </button>
-    <button *ngIf="showStartGameButton" (click)="startGame()"
-            style="width: 15em; height: 4em; text-align: center; align-content: space-around; font-size: large; border-radius: 0.5em; position:absolute;
-        top: 45%; left: 38%; background-color: #884488">
-        Start Game
-    </button>
 
-    <div *ngIf="gameStarted"  class="score-board"
-            style="position: absolute; width: 10%; height: 25%; background-color: burlywood; border-radius: 1em; top:3%; left:60%; padding:1em;">
-                            <p style="width: 100%; text-align: center">Ronde {{round}} van 16</p>
+    <div class="score-board">
+                            <div style="width: 100%; text-align: center">Ronde {{round}} van 16</div>
                             <table>
                                 <col>
                                 <col>
@@ -44,7 +38,7 @@
                                 </tr>
                             </table>
                         <br>
-<!--                        <div [innerHtml]="message"></div>-->
+                        <div [innerHtml]="message"></div>
     </div>
 
     <div class="play-field">

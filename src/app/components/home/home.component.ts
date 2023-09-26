@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, OnInit} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, HostListener, OnInit} from '@angular/core';
 import {Card, SUIT, SUITS} from "../../models/model";
 
 @Component({
@@ -8,8 +8,6 @@ import {Card, SUIT, SUITS} from "../../models/model";
 })
 export class HomeComponent implements OnInit, AfterViewInit {
   showFullScreenButton: boolean = true;
-  showStartGameButton: boolean = false;
-  gameStarted: boolean = false;
 
   Players: string[] = ['North', 'East', 'South', 'West'];
   player: string = this.Players[2];
@@ -57,10 +55,16 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   message: string = '';
 
-
   constructor(private elementRef: ElementRef) { }
 
   ngOnInit(): void {
+    this.startRound();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event:any) {
+    console.log('Resizing browser to (width/height): ' + event.target.innerWidth + '/' + event.target.innerHeight);
+    this.resizeLayout();
   }
 
   openFullscreen() {
@@ -68,12 +72,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     if (elem) {
       if (elem.requestFullscreen) {
         elem.requestFullscreen().then(() => {
-          this.showFullScreenButton = false;
-          setTimeout(() => {
-            this.showStartGameButton = true;
-          }, 500);
+          console.log('openFullscreen successfully done.');
         })
-
         // } else if (elem.webkitRequestFullscreen) { /* Safari */
         //   elem.webkitRequestFullscreen();
         // } else if (elem.msRequestFullscreen) { /* IE11 */
@@ -82,15 +82,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
   }
 
+  showingFullScreen(): boolean {
+    return !document.fullscreenElement;
+  }
 
   ngAfterViewInit(): void {
   };
-
-  startGame() {
-    this.showStartGameButton = false;
-    this.gameStarted = true;
-    this.startRound();
-  }
 
   private startRound() {
     this.cards = [];
@@ -149,7 +146,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.cardsOfWest.push(this.cards[this.spread[spreadNr]]);
       this.spread.splice(spreadNr, 1);
     }
+    this.resizeLayout();
+  }
 
+  resizeLayout() {
     setTimeout(() => {
       const placeholderSouth = this.elementRef.nativeElement.querySelector('.south').getBoundingClientRect();
       const placeholderS = this.elementRef.nativeElement.querySelector('.placeholder-player').getBoundingClientRect();
@@ -173,7 +173,21 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
       this.offsetWestX = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().left - this.placeholderWestRect.left;
       this.offsetWestY = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().top - this.placeholderWestRect.top;
-    }, 1000)
+
+      if (this.cardNorth) {
+        this.cardNorth.y = this.offsetNorthY;
+      }
+      if (this.cardEast) {
+        this.cardEast.x = this.offsetEastX;
+      }
+      if (this.cardWest) {
+        this.cardWest.x = this.offsetWestX;
+      }
+      if (this.cardSouth) {
+        this.cardSouth.x = this.offsetSouthX;
+        this.cardSouth.y = this.offsetSouthY;
+      }
+    })
   }
 
   cardClick(card: Card): boolean {
@@ -291,12 +305,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
             .map(card => this.calculatePoints(card))
             .reduce((highestScoreCard, currentCard) => currentCard.score > highestScoreCard.score ? currentCard : highestScoreCard);
 
-    this.message = 'Punten:<br>'
-        + 'North: ' + (this.cardNorth?.type == this.troef) + ', ' + (this.cardNorth?.value) + ': ' + (this.cardNorth ? this.calculatePoints(this.cardNorth).score : '') + '<br>'
-        + 'East:  ' +  (this.cardEast?.type == this.troef) + ', ' + (this.cardEast?.value) + ': ' + (this.cardEast ? this.calculatePoints(this.cardEast).score : '') + '<br>'
-        + 'South: ' +  (this.cardSouth?.type == this.troef) + ', ' + (this.cardSouth?.value) + ': ' + (this.cardSouth ? this.calculatePoints(this.cardSouth).score : '') + '<br>'
-        + 'West:  ' +  (this.cardWest?.type == this.troef) + ', ' + (this.cardWest?.value) + ': ' + (this.cardWest ? this.calculatePoints(this.cardWest).score : '') + '<br>'
-    ;
     setTimeout(() => {
       const winnerNr: number =
           this.cardsOfNorth.includes(winningCard) ? 0 : this.cardsOfEast.includes(winningCard) ? 1 : this.cardsOfWest.includes(winningCard) ? 3 : 2;
@@ -332,9 +340,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.cards.forEach(c => c.moving = false);
       this.message = '';
       if (this.cardsOfNorth.filter(card => !card.used).length == 0) {
-        if (++this.round > 3) {
+        if (this.round > 3) {
           this.message = 'Game over';
         } else {
+          this.round++;
           this.message = 'Start ronde #' + this.round;
           setTimeout(() => {
             this.startRound();
