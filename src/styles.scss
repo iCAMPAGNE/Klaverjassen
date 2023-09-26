@@ -11,6 +11,9 @@ $card_width: calc($card_height / 1.452);
 
 $body_background_color: #778877;
 
+$back-card-margin-top: calc($card_height / 8);
+$back-card-margin-left: calc($card_width / 8);
+
 body {
     background-color: $body_background_color;
     width: $body_width;
@@ -18,7 +21,7 @@ body {
 //    overflow-y: hidden;
 
     div.main {
-        padding-left: 10%;
+        padding-left: calc($body_width/10);
         background-color: $body_background_color;
     }
 
@@ -48,14 +51,23 @@ body {
     div.center-area {
         height: calc(3*$card_height);
         width: calc(4*$card_width);
-        margin-left: calc($body_width/2 - 3*$card_width);
+        margin-left: calc($body_width/2 - 3.5*$card_width);
         margin-top: calc($card_height/2);
 //        background-color: darkorchid;
     }
 }
 
+.back-card-margin-top {
+    margin-top: calc(var(--index) * $back-card-margin-top);
+}
+
+.back-card-margin-left {
+    margin-left: calc(var(--index) * $back-card-margin-left);
+}
+
+
 div.play-field {
-    width: $body_width;
+    width: calc(0.9*$body_width);
     height: calc($body_height - $card_height);
     display: flex;
     //margin-top: -55vh;
@@ -65,12 +77,12 @@ div.play-field {
 div.north-home {
     width: $card_width;
     height: $card_height;
-    margin-left: calc($body_width/2 - 1.5*$card_width);
+    margin-left: calc($body_width/2 - 2*$card_width);
 //    background-color: cornflowerblue;
 }
 
 div.south-home {
-    width: $body_width;
+    width: calc(0.9*$body_width);
     height: $card_height;
 //    margin-top: calc($body_height - 5.5*$card_height);
 //    margin-left: calc($body_width/2 - 1.5*$card_width);
@@ -147,6 +159,27 @@ div.way {
 .card-format {
     width: $card_width;
     height: $card_height;
+    border-radius: 5%;
+}
+
+.card-back-format {
+    width: calc($card_width - 10px);
+    height: calc($card_height - 10px);
+    border: #556677 double 5px;
+    border-radius: 5%;
+}
+
+.card-background {
+    --stripe: #445566;
+    --bg: #778899;
+
+    background: linear-gradient(135deg, var(--bg) 25%, transparent 25%) -50px 0,
+    linear-gradient(225deg, var(--bg) 25%, transparent 25%) -50px 0,
+    linear-gradient(315deg, var(--bg) 25%, transparent 25%),
+    linear-gradient(45deg, var(--bg) 25%, transparent 25%);
+    background-size: 100px 100px;
+    background-color: var(--stripe);
+
 }
 
 button.card-button {
@@ -187,10 +220,24 @@ div.cover-done-pile-player {
     transform: translate(var(--offsetx), var(--offsety));
 }
 
+button.full-screen-button {
+    position: absolute;
+    top: 1em;
+    left: 1em;
+    height: 5em;
+    width: 15em;
+    border-radius: 0.5em;
+    border: 0;
+    background-color: darkgray;
+    text-align: center;
+    align-content: space-around; font-size: large;
+}
+
 div.score-board {
     position: absolute;
+    z-index: 51;
     top: calc($body_height/40);
-    left: calc(0.9*$body_width);
+    left: calc(0.8*$body_width);
     height: calc(0.3*$body_height);
     width: calc($body_width/7);
     background-color: #88BB88;

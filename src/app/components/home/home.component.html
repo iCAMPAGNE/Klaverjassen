@@ -1,9 +1,5 @@
 <div id="main" class="main">
-    <button *ngIf="showingFullScreen()" (click)="openFullscreen()"
-            style="width: 15em; height: 4em; text-align: center; align-content: space-around; font-size: large; border-radius: 0.5em; position:absolute;
-        top: 5%; left: 5%">
-        Klik hier voor volledig scherm
-    </button>
+    <button *ngIf="showingFullScreen()" class="full-screen-button" (click)="openFullscreen()">Klik hier voor volledig scherm</button>
 
     <div class="score-board">
                             <div style="width: 100%; text-align: center">Ronde {{round}} van 16</div>
@@ -46,6 +42,8 @@
             <div class="west-home">
                             <div class="cards-row placeholder-w">
                                 <div *ngFor="let card of cardsOfWest let i = index;" class="cards-pile card-canvas">
+                                    <div *ngIf="!card.used" class="card-back-format card-background back-card-margin-top"
+                                         style="--index: {{i-7}}; position: absolute; z-index: 50;"></div>
                                     <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': card.used}"
                                          style="--offsetx: {{card.x}}px; --offsety: {{card.y}}px;">
                                 </div>
@@ -56,6 +54,8 @@
             <div class="north-home">
                             <div class="cards-row placeholder-n">
                                 <div *ngFor="let card of cardsOfNorth let i = index;" class="cards-pile card-canvas">
+                                    <div *ngIf="!card.used" class="card-back-format card-background back-card-margin-left"
+                                         style="--index: {{i-7}}; position: absolute; z-index: 50;"></div>
                                     <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': card.used}"
                                          style="--offsetx: {{card.x}}px; --offsety: {{card.y}}px;">
                                 </div>
@@ -90,6 +90,8 @@
             <div class="west-home">
                             <div class="cards-row placeholder-e">
                                 <div *ngFor="let card of cardsOfEast let i = index;" class="cards-pile card-canvas">
+                                    <div *ngIf="!card.used" class="card-back-format card-background back-card-margin-top"
+                                         style="--index: {{i-7}}; position: absolute; z-index: 50;"></div>
                                     <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': card.used}"
                                          style="--offsetx: {{card.x}}px; --offsety: {{card.y}}px;">
                                 </div>

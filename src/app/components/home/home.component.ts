@@ -315,7 +315,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.cardNorth.y = won.top - this.placeholderNorthRect.top;
         this.cardEast.x = won.left - this.placeholderEastRect.left;
         this.cardEast.y = won.top - this.placeholderEastRect.top;
-        this.cardSouth.x = won.left - this.placeholderSouthRect.left + this.offsetSouthX - 0.7*this.offsetSouthXdiff;
+        this.cardSouth.x = won.left - this.placeholderSouthRect.left + this.offsetSouthX;
         this.cardSouth.y = won.top - this.placeholderPlayerRect.top;
         this.cardWest.x = won.left - this.placeholderWestRect.left;
         this.cardWest.y = won.top - this.placeholderWestRect.top;
