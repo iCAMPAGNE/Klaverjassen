@@ -146,7 +146,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.cardsOfWest.push(this.cards[this.spread[spreadNr]]);
       this.spread.splice(spreadNr, 1);
     }
+    this.placeholdersZ.sort((card1, card2) => this.sortCardsForPlayer(card1, card2));
     this.resizeLayout();
+  }
+
+  private sortCardsForPlayer(card1: Card, card2: Card): number {
+    const orderNumbers:number[][] = [[8,9,14,12,15,10,11,13],[0,1,2,6,3,4,5,7]];
+    const card1order:number = orderNumbers[card1.type === this.troef ? 0 : 1][card1.value -7];
+    const card2order:number = orderNumbers[card2.type === this.troef ? 0 : 1][card2.value -7];
+    return card1.type < card2.type ? -1 : card1.type === card2.type ? card1order < card2order ? 1 : -1 : 1;
   }
 
   resizeLayout() {
@@ -218,15 +226,44 @@ export class HomeComponent implements OnInit, AfterViewInit {
       return false;
     }
 
-    const suitPreviousPlayer: SUIT | undefined = this.cardsOfEast.find(c => c.moving)?.type;
-
-    // If possible, use same suit as previous player
-    if (card.type === suitPreviousPlayer) {
+    // Determine suit of first player in this battle.
+    const players: Card[][] = [this.cardsOfWest, this.cardsOfNorth, this.cardsOfEast];
+    const suitFirstPlayer: SUIT | undefined = players[3 - this.numberOfPlayed].find(c => c.moving)?.type;
+    if (card.type === suitFirstPlayer) { // If possible, use same suit as first player
       return false;
     }
 
+    // If 'mate' is in the lead (card with the highest value so far), any card is allowed.
+    let cardOfMateHasHighestScoreSoFar: boolean = false;
+    if (this.numberOfPlayed >= 2) { // 'mate' already in the battle
+      const cardOfNorth: Card | undefined = this.cardsOfNorth.find(card => card.moving);
+      if (cardOfNorth) {
+        this.calculatePoints(cardOfNorth);
+        if (this.numberOfPlayed == 3) {
+          const cardOfWest: Card | undefined = this.cardsOfWest.find(card => card.moving);
+          if (cardOfWest) {
+            this.calculatePoints(cardOfWest);
+            if (cardOfNorth.score > cardOfWest.score) {
+              cardOfMateHasHighestScoreSoFar = true;
+            }
+          }
+        }
+        const cardOfEast: Card | undefined = this.cardsOfEast.find(card => card.moving);
+        if (cardOfEast) {
+          this.calculatePoints(cardOfEast);
+          if (cardOfNorth.score <= cardOfEast.score) {
+            cardOfMateHasHighestScoreSoFar = false;
+          }
+        }
+      }
+    }
+    if (cardOfMateHasHighestScoreSoFar) {
+      return false;
+    }
+
+
     // If player can't follow suit, try 'troef'
-    if (this.placeholdersZ.every(c => c.used || c.type !== suitPreviousPlayer)) {
+    if (this.placeholdersZ.every(c => c.used || c.type !== suitFirstPlayer)) {
       if (card.type === this.troef) {
         return false;
       } else {
