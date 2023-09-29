@@ -60,7 +60,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   @HostListener('window:resize', ['$event'])
   onResize(event:any) {
-    console.log('Resizing browser to (width/height): ' + event.target.innerWidth + '/' + event.target.innerHeight);
     this.resizeLayout();
   }
 
@@ -126,7 +125,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     for (let playerNr = 0; playerNr < 4; playerNr++) {
       this.cardsOfPlayers[playerNr] = [];
       for (let i = 0; i < 8; i++) {
-        let spreadNr = Math.floor(Math.random() * this.spread.length);
+        const spreadNr = Math.floor(Math.random() * this.spread.length);
         this.cardsOfPlayers[playerNr].push(this.cards[this.spread[spreadNr]]);
         this.spread.splice(spreadNr, 1);
       }
@@ -200,16 +199,43 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   private allowedCardsForPlayerInCurrentBattle(playerNr: number): Card[] {
     const cards: Card[] = this.cardsOfPlayers[playerNr].filter(card => !card.used);
-    console.log(playerNr + ' ' + cards.length);
     // If player started battle, every card is allowed.
     if (this.numberOfPlayed === 0) {
       return cards;
     }
 
     // Calculate scores of cards played so far
-    this.cardsOfPlayers.filter((cardsOfPlayer: Card[], index) => index != playerNr).forEach((cardsOfOtherPlayer: Card[]) => console.log(cardsOfOtherPlayer));
+    this.cardsOfPlayers.filter((cardsOfPlayer: Card[], index) => index != playerNr).forEach((cardsOfOtherPlayer: Card[]) => cardsOfOtherPlayer.filter(card => card.moving).forEach(card => this.calculatePoints(card)));
 
+    // Determine suit of first player in this battle.
+    let suit:SUIT | undefined;
+    for (let i = playerNr + 1; i < playerNr + 4 && !suit; i++) {
+      suit = this.cardsOfPlayers[i % 4].find(card => card.moving)?.type;
+    }
+    if (suit) { // If player has card(s) with suit, only these are allowed.
+      if (cards.some(card => card.type === suit)) {
+        return cards.filter(card => card.type === suit);
+      }
+    }
 
+    // If 'mate' is in the lead (card with the highest value so far), any card is allowed.
+    const matePlayerNr = (playerNr + 2) % 4;
+    const cardOfMate: Card | undefined = this.cardsOfPlayers[matePlayerNr].find(card => card.moving);
+    if (cardOfMate) {
+      const score: number = this.cardsOfPlayers.filter((cardsOfPlayer, index) => index != matePlayerNr).filter(cardsOfPlayer => cardsOfPlayer.some(card => card.moving)).map(cardsOfPlayer => cardsOfPlayer.find(card => card.moving)?.score || 0).reduce((highestScore, score) => Math.max(highestScore, score), 0);
+      if (cardOfMate.score > score) {
+        return cards;
+      }
+    }
+
+    // If player can't follow suit, try 'troef'
+    if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.type === this.troef)) {
+      // Check whether someone else already played 'troef'.
+      const score:number = this.cardsOfPlayers.map(cardsOfPlayer => cardsOfPlayer.find(card => card.moving && card.type === this.troef)?.score || 0).reduce((highestScore, score) => Math.max(highestScore, score), 0);
+      if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.type === this.troef && card.score > score)) {
+        return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.type === this.troef && card.score > score);
+      }
+    }
     return cards;
   }
 
@@ -221,73 +247,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
       return true; // Disable all cards if it's not your turn
     }
 
-    // If you start the round, every card is allowed
-    if (this.numberOfPlayed === 0) {
-      return false;
-    }
-
-    // Calculate scores of cards played so far
-    const cardOfNorth: Card | undefined = this.cardsOfPlayers[0].find(card => card.moving);
-    if (cardOfNorth) {
-      this.calculatePoints(cardOfNorth);
-    }
-    const cardOfEast: Card | undefined = this.cardsOfPlayers[1].find(card => card.moving);
-    if (cardOfEast) {
-      this.calculatePoints(cardOfEast);
-    }
-    const cardOfWest: Card | undefined = this.cardsOfPlayers[3].find(card => card.moving);
-    if (cardOfWest) {
-      this.calculatePoints(cardOfWest);
-    }
-
-    // Determine suit of first player in this battle.
-    const players: Card[][] = [this.cardsOfPlayers[3], this.cardsOfPlayers[0], this.cardsOfPlayers[1]];
-    const suitFirstPlayer: SUIT | undefined = players[3 - this.numberOfPlayed].find(c => c.moving)?.type;
-    if (card.type === suitFirstPlayer) { // If possible, use same suit as first player
-      return false;
-    }
-
-    // If 'mate' is in the lead (card with the highest value so far), any card is allowed.
-    let cardOfMateHasHighestScoreSoFar: boolean = false;
-    if (this.numberOfPlayed >= 2) { // 'mate' already in the battle
-      if (cardOfNorth) {
-        if (this.numberOfPlayed == 3) {
-          if (cardOfWest) {
-            if (cardOfNorth.score > cardOfWest.score) {
-              cardOfMateHasHighestScoreSoFar = true;
-            }
-          }
-        }
-        if (cardOfEast) {
-          if (cardOfNorth.score <= cardOfEast.score) {
-            cardOfMateHasHighestScoreSoFar = false;
-          }
-        }
-      }
-    }
-    if (cardOfMateHasHighestScoreSoFar) {
-      return false;
-    }
-
-    // If player can't follow suit, try 'troef'
-    if (this.cardsOfPlayers[2].every(c => c.used || c.type !== suitFirstPlayer)) {
-      if (card.type === this.troef) {
-        return false;
-      } else {
-        if (this.cardsOfPlayers[2].every(c => c.used || c.type !== this.troef)) {
-          return false;
-        }
-      }
-    }
-
-    return true;
+    return !this.allowedCardsForPlayerInCurrentBattle(2).includes(card);
   }
 
   nextTurn() {
     switch (this.player) {
       case this.Players[0]:
         setTimeout(() => {
-          const card: Card = this.cardsOfPlayers[0].filter(c => !c.used)[0];
+          const card: Card = this.allowedCardsForPlayerInCurrentBattle(0)[0];
           if (card) {
             card.x = this.offsetNorthX;
             card.y = this.offsetNorthY;
@@ -305,7 +272,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         break;
       case this.Players[1]:
         setTimeout(() => {
-          const card: Card = this.cardsOfPlayers[1].filter(c => !c.used)[0];
+          const card: Card = this.allowedCardsForPlayerInCurrentBattle(1)[0];
           if (card) {
             card.x = this.offsetEastX;
             card.y = this.offsetEastY;
@@ -323,7 +290,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         break;
       case this.Players[3]:
         setTimeout(() => {
-          const card: Card = this.cardsOfPlayers[3].filter(c => !c.used)[0];
+          const card: Card = this.allowedCardsForPlayerInCurrentBattle(3)[0];
           if (card) {
             card.x = this.offsetWestX;
             card.y = this.offsetWestY;
