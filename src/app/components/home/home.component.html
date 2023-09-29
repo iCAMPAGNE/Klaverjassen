@@ -2,46 +2,45 @@
     <button *ngIf="showingFullScreen()" class="full-screen-button" (click)="openFullscreen()">Klik hier voor volledig scherm</button>
 
     <div class="score-board">
-                            <div style="width: 100%; text-align: center">Ronde {{round}} van 16</div>
-                            <table>
-                                <col>
-                                <col>
-                                <col>
-                                <tr>
-                                    <td>Troef</td>
-                                    <td class="troef-symbol">{{troefSymbol}}</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <th></th>
-                                    <th>N/Z</th>
-                                    <th>O/W</th>
-                                </tr>
-                                <tr>
-                                    <td>Score</td>
-                                    <td>{{scoreNorthSouth}}</td>
-                                    <td>{{scoreEastWest}}</td>
-                                </tr>
-                                <tr>
-                                    <td>Roem</td>
-                                    <td>{{roemNorthSouth}}</td>
-                                    <td>{{roemEastWest}}</td>
-                                </tr>
-                                <tr>
-                                    <td>Totaal</td>
-                                    <td>{{scoreNorthSouth + roemNorthSouth}}</td>
-                                    <td>{{scoreEastWest + roemEastWest}}</td>
-                                </tr>
-                            </table>
-                        <br>
-                        <div [innerHtml]="message"></div>
+        <div style="">Ronde {{round}} van 16</div>
+        <table>
+            <col>
+            <col>
+            <col>
+            <tr>
+                <td>Troef</td>
+                <td class="troef-symbol">{{troefSymbol}}</td>
+                <td></td>
+            </tr>
+            <tr>
+                <th></th>
+                <th>N/Z</th>
+                <th>O/W</th>
+            </tr>
+            <tr>
+                <td>Score</td>
+                <td>{{scoreNorthSouth}}</td>
+                <td>{{scoreEastWest}}</td>
+            </tr>
+            <tr>
+                <td>Roem</td>
+                <td>{{roemNorthSouth}}</td>
+                <td>{{roemEastWest}}</td>
+            </tr>
+            <tr>
+                <td>Totaal</td>
+                <td>{{scoreNorthSouth + roemNorthSouth}}</td>
+                <td>{{scoreEastWest + roemEastWest}}</td>
+            </tr>
+        </table>
+    <div [innerHtml]="message"></div>
     </div>
 
     <div class="play-field">
-        <div class="left-column">
+        <div class="side-column">
             <div class="west-home">
                             <div class="cards-row placeholder-w">
-                                <div *ngFor="let card of cardsOfWest let i = index;" class="cards-pile card-canvas">
+                                <div *ngFor="let card of cardsOfPlayers[3] let i = index;" class="cards-pile card-canvas">
                                     <div *ngIf="!card.used" class="card-back-format card-background back-card-margin-top"
                                          style="--index: {{i-7}}; position: absolute; z-index: 50;"></div>
                                     <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': card.used}"
@@ -53,7 +52,7 @@
         <div class="middle-column">
             <div class="north-home">
                             <div class="cards-row placeholder-n">
-                                <div *ngFor="let card of cardsOfNorth let i = index;" class="cards-pile card-canvas">
+                                <div *ngFor="let card of cardsOfPlayers[0] let i = index;" class="cards-pile card-canvas">
                                     <div *ngIf="!card.used" class="card-back-format card-background back-card-margin-left"
                                          style="--index: {{i-7}}; position: absolute; z-index: 50;"></div>
                                     <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': card.used}"
@@ -86,10 +85,10 @@
                 </div>
             </div>
         </div>
-        <div class="left-column">
+        <div class="side-column">
             <div class="west-home">
                             <div class="cards-row placeholder-e">
-                                <div *ngFor="let card of cardsOfEast let i = index;" class="cards-pile card-canvas">
+                                <div *ngFor="let card of cardsOfPlayers[1] let i = index;" class="cards-pile card-canvas">
                                     <div *ngIf="!card.used" class="card-back-format card-background back-card-margin-top"
                                          style="--index: {{i-7}}; position: absolute; z-index: 50;"></div>
                                     <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': card.used}"
@@ -98,104 +97,10 @@
                             </div>
             </div>
         </div>
-    <!--    <div class="card-columns">-->
-    <!--        <div class="card-column done-placeholder">-->
-    <!--            <div class="cards-row placeholder-w">-->
-    <!--                <div *ngFor="let card of cardsOfWest let i = index;" class="cards-pile card-canvas">-->
-    <!--                    <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': card.used}"-->
-    <!--                         style="&#45;&#45;offsetx: {{card.x}}px; &#45;&#45;offsety: {{card.y}}px;">-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--        <div class="card-column second-column">-->
-    <!--            <div class="cards-row placeholder-n">-->
-    <!--                <div *ngFor="let card of cardsOfNorth let i = index;" class="cards-pile card-canvas">-->
-    <!--                    <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': card.used}"-->
-    <!--                         style="&#45;&#45;offsetx: {{card.x}}px; &#45;&#45;offsety: {{card.y}}px;">-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--            <div class="cards-row placeholder-n">-->
-    <!--                <div class="card-placeholder north">-->
-    <!--                    <div class="way">N</div>-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--            <div class="cards-row">-->
-    <!--                <div class="card-placeholder west">-->
-    <!--                    <div class="way">W</div>-->
-    <!--                </div>-->
-    <!--                <div class="card-placeholder east">-->
-    <!--                    <div class="way">O</div>-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--            <div class="cards-row">-->
-    <!--                <div class="card-placeholder south">-->
-    <!--                    <div class="way">Z</div>-->
-    <!--                </div>-->
-    <!--            </div>-->
-
-    <!--            <div class="cards-row placeholder-player">-->
-    <!--                <div *ngFor="let card of placeholdersZ let i = index;" class="card-canvas">-->
-    <!--                    <button id="card-{{card.id}}" class="card-button" [ngClass]="{'move-card': card.used}"-->
-    <!--                            style="background-image: url({{card.imageUrl}}); &#45;&#45;offsetx: {{(card.x || 0) - i*offsetSouthXdiff}}px; &#45;&#45;offsety: {{card.y}}px;"-->
-    <!--                            [disabled]="isCardDisabled(card)" (click)="cardClick(card)"></button>-->
-    <!--                </div>-->
-    <!--            </div>-->
-
-    <!--            <div class="cover-done-pile-player"></div>-->
-    <!--            <div class="cards-row placeholder-s">-->
-    <!--                <div class="cards-pile card-canvas card-format"></div>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--        <div class="card-column done-placeholder">-->
-    <!--            <div class="cover-done-pile">-->
-    <!--                <div class="score-board">-->
-    <!--                    <p style="width: 100%; text-align: center">Ronde {{round}} van 16</p>-->
-    <!--                    <table>-->
-    <!--                        <col>-->
-    <!--                        <col>-->
-    <!--                        <col>-->
-    <!--                        <tr>-->
-    <!--                            <td>Troef</td>-->
-    <!--                            <td class="troef-symbol">{{troefSymbol}}</td>-->
-    <!--                            <td></td>-->
-    <!--                        </tr>-->
-    <!--                        <tr>-->
-    <!--                            <th></th>-->
-    <!--                            <th>N/Z</th>-->
-    <!--                            <th>O/W</th>-->
-    <!--                        </tr>-->
-    <!--                        <tr>-->
-    <!--                            <td>Score</td>-->
-    <!--                            <td>{{scoreNorthSouth}}</td>-->
-    <!--                            <td>{{scoreEastWest}}</td>-->
-    <!--                        </tr>-->
-    <!--                        <tr>-->
-    <!--                            <td>Roem</td>-->
-    <!--                            <td>{{roemNorthSouth}}</td>-->
-    <!--                            <td>{{roemEastWest}}</td>-->
-    <!--                        </tr>-->
-    <!--                        <tr>-->
-    <!--                            <td>Totaal</td>-->
-    <!--                            <td>{{scoreNorthSouth + roemNorthSouth}}</td>-->
-    <!--                            <td>{{scoreEastWest + roemEastWest}}</td>-->
-    <!--                        </tr>-->
-    <!--                    </table>-->
-    <!--                </div>-->
-    <!--                <br>-->
-    <!--                <div [innerHtml]="message"></div>-->
-    <!--            </div>-->
-    <!--            <div class="cards-row placeholder-e">-->
-    <!--                <div *ngFor="let card of cardsOfEast let i = index;" class="cards-pile card-canvas">-->
-    <!--                    <img id="card-{{card.id}}" [src]="card.imageUrl" alt="card" class="card-format" [ngClass]="{'move-card': card.used}"-->
-    <!--                         style="&#45;&#45;offsetx: {{card.x}}px; &#45;&#45;offsety: {{card.y}}px;">-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--    </div>-->
     </div>
     <div class="south-home">
         <div class="cards-row placeholder-player">
-            <div *ngFor="let card of placeholdersZ; let i = index;" class="card-canvas">
+            <div *ngFor="let card of cardsOfPlayers[2]; let i = index;" class="card-canvas">
                 <button id="card-{{card.id}}" class="card-button" [ngClass]="{'move-card': card.used}"
                         style="background-image: url({{card.imageUrl}}); --offsetx: {{(card.x || 0) - i*offsetSouthXdiff}}px; --offsety: {{card.y}}px;"
                         [disabled]="isCardDisabled(card)" (click)="cardClick(card)"></button>
