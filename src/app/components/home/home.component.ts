@@ -233,9 +233,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
     // If player can't follow suit, try 'troef'
     if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.type === this.troef)) {
       // Check whether someone else already played 'troef'.
-      const score:number = this.cardsOfPlayers.map(cardsOfPlayer => cardsOfPlayer.find(card => card.moving && card.type === this.troef)?.score || 0).reduce((highestScore, score) => Math.max(highestScore, score), 0);
-      if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.type === this.troef && card.score > score)) {
-        return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.type === this.troef && card.score > score);
+      const highestTroefScore:number = this.cardsOfPlayers.map(cardsOfPlayer => cardsOfPlayer.find(card => card.moving && card.type === this.troef)?.score || 0).reduce((highestScore, score) => Math.max(highestScore, score), 0);
+      if (highestTroefScore > 0) {
+        // Someone played trump so check if you have trump-cards of higher value
+        if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.type === this.troef && card.score > highestTroefScore)) {
+          return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.type === this.troef && card.score > highestTroefScore);
+        } else {
+          // If not, all other cards (except trump) are allowed.
+          return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.type !== this.troef);
+        }
       }
     }
     return cards;
@@ -321,16 +327,33 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   endOfBattle() {
-    const winningCard: Card =
-        this.cards.filter((card: Card) => card.moving)
-            .map(card => this.calculatePoints(card))
-            .reduce((highestScoreCard, currentCard) => currentCard.score > highestScoreCard.score ? currentCard : highestScoreCard);
+    this.cardsOfPlayers.forEach(cardsOfPlayer => { // Todo only calculate for last player, the rest is already known.
+      const card = cardsOfPlayer.find(card => card.moving);
+      if (card) {
+        this.calculatePoints(card);
+      }
+    });
+
+    let winnerPlayer:number = -1
+    const playerStartedBattle: number = this.Players.indexOf(this.player);
+    const suitStarted:SUIT = this.cardsOfPlayers[playerStartedBattle].find(card => card.moving)?.type || this.troef;
+    if (suitStarted !== this.troef) {
+      const playerWithHighestTrump: number[] = this.cardsOfPlayers.map((cardsOfPlayer, index) => [cardsOfPlayer.find(card => card.moving && card.type === this.troef)?.score ?? -1, index]).sort((score1, score2) => score1[0] > score2[0] ? -1 : 1)[0];
+      console.log(playerWithHighestTrump);
+      if (playerWithHighestTrump[0] >= 0) {
+        console.log('Winner with troef is player ' + playerWithHighestTrump[1] + ' with ' + playerWithHighestTrump[0] + ' points');
+        winnerPlayer = playerWithHighestTrump[1];
+      }
+    }
+    if (winnerPlayer < 0) {
+      // Who has the card with the highest value with the same suit as the player who started the battle?
+      const playerWithHighestSuit: number[] = this.cardsOfPlayers.map((cardsOfPlayer, index) => [cardsOfPlayer.find(card => card.moving && card.type === suitStarted)?.score ?? -1, index]).sort((score1, score2) => score1[0] > score2[0] ? -1 : 1)[0];
+      console.log('Winner with suit is player ' + playerWithHighestSuit[1] + ' with ' + playerWithHighestSuit[0] + ' points');
+      winnerPlayer = playerWithHighestSuit[1];
+    }
 
     setTimeout(() => {
-      const winnerNr: number =
-          this.cardsOfPlayers[0].includes(winningCard) ? 0 : this.cardsOfPlayers[1].includes(winningCard) ? 1 : this.cardsOfPlayers[3].includes(winningCard) ? 3 : 2;
-
-      const won = [this.placeholderNorthRect, this.placeholderEastRect, this.placeholderSouthRect, this.placeholderWestRect][winnerNr];
+      const won = [this.placeholderNorthRect, this.placeholderEastRect, this.placeholderSouthRect, this.placeholderWestRect][winnerPlayer];
       if (this.cardNorth && this.cardEast && this.cardEast && this.cardSouth && this.cardWest) {
         this.cardNorth.x = won.left - this.placeholderNorthRect.left;
         this.cardNorth.y = won.top - this.placeholderNorthRect.top;
@@ -350,13 +373,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
         }, 700);
       }
       const totalScore = this.cards.filter((card: Card) => card.moving).map(card => this.calculatePoints(card).score).reduce((totalScore: number, cardScore) => totalScore + cardScore);
-      if ([0,2].includes(winnerNr)) {
+      if ([0,2].includes(winnerPlayer)) {
         this.scoreNorthSouth += totalScore;
       } else {
         this.scoreEastWest += totalScore;
       }
 
-      this.player = this.Players[winnerNr];
+      this.player = this.Players[winnerPlayer];
       this.numberOfPlayed = 0;
       this.cards.forEach(c => c.moving = false);
       this.message = '';
