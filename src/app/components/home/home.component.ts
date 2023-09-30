@@ -188,12 +188,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
     card.used = true;
     card.moving = true;
     this.cardSouth = card;
-    this.nextPlayer();
-    if (this.numberOfPlayed === 4) {
-      this.endOfBattle();
-    } else {
-      this.nextTurn();
-    }
+    setTimeout(() => {
+      this.nextPlayer();
+      if (this.numberOfPlayed === 4) {
+        this.endOfBattle();
+      } else {
+        this.nextTurn();
+      }
+    }, 800);
     return true;
   }
 
@@ -262,12 +264,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
             card.used = true;
             this.cardNorth = card;
           }
-          this.nextPlayer();
-          if (this.numberOfPlayed === 4) {
-            this.endOfBattle();
-          } else {
-            this.nextTurn();
-          }
+          setTimeout(() => {
+            this.cardsOfPlayers[0].sort((card1:Card, card2: Card) => card1.used ? -1 : 1);
+            this.nextPlayer();
+            if (this.numberOfPlayed === 4) {
+              this.endOfBattle();
+            } else {
+              this.nextTurn();
+            }
+          }, 1000)
         }, 1000);
         break;
       case this.Players[1]:
@@ -280,12 +285,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
             card.used = true;
             this.cardEast = card;
           }
-          this.nextPlayer();
-          if (this.numberOfPlayed === 4) {
-            this.endOfBattle();
-          } else {
-            // enable players cards
-          }
+          setTimeout(() => {
+            this.cardsOfPlayers[1].sort((card1:Card, card2: Card) => card1.used ? -1 : 1);
+            this.nextPlayer();
+            if (this.numberOfPlayed === 4) {
+              this.endOfBattle();
+            } else {
+              // enable players cards
+            }
+          }, 1000)
         }, 1000);
         break;
       case this.Players[3]:
@@ -298,12 +306,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
             card.moving = true;
             this.cardWest = card;
           }
-          this.nextPlayer();
-          if (this.numberOfPlayed === 4) {
-            this.endOfBattle();
-          } else {
-            this.nextTurn();
-          }
+          setTimeout(() => {
+            this.cardsOfPlayers[3].sort((card1:Card, card2: Card) => card1.used ? -1 : 1);
+            this.nextPlayer();
+            if (this.numberOfPlayed === 4) {
+              this.endOfBattle();
+            } else {
+              this.nextTurn();
+            }
+          }, 1000)
         }, 1000);
         break;
     }

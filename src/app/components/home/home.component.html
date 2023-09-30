@@ -63,24 +63,24 @@
             <div class="center-area">
                 <div class="card-format north-play" style="background-color: indigo;">
                                     <div class="card-placeholder north">
-                                        <div class="way">N</div>
+                                        <div class="way" [ngClass]="{'playing': player === Players[0]}">N</div>
                                     </div>
                 </div>
                 <div style="display:flex; justify-content: space-between;">
                     <div class="card-format">
                                         <div class="card-placeholder west">
-                                            <div class="way">W</div>
+                                            <div class="way" [ngClass]="{'playing': player === Players[3]}">W</div>
                                         </div>
                     </div>
                     <div class="card-format">
                                         <div class="card-placeholder east">
-                                            <div class="way">O</div>
+                                            <div class="way" [ngClass]="{'playing': player === Players[1]}">O</div>
                                         </div>
                     </div>
                 </div>
                 <div class="card-format south-play">
                                     <div class="card-placeholder south">
-                                        <div class="way">Z</div>
+                                        <div class="way" [ngClass]="{'playing': player === Players[2]}">Z</div>
                                     </div>
                 </div>
             </div>

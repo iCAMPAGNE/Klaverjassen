@@ -134,6 +134,11 @@ div.card-placeholder {
 
 div.way {
     width: 10vw;
+    &.playing {
+        font-size: xxx-large;
+        font-weight: bold;
+        color: white;
+    }
 }
 
 .card-format {
