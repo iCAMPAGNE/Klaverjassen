@@ -1,14 +1,14 @@
 
 export interface Card {
     id: number;
-    value: number;
+    nr: number;
     imageUrl: string;
-    type: SUIT;
+    suit: SUIT;
     moving: boolean;
     x?: number;
     y?: number;
     used: boolean;
-    score: number;
+    value: number;
 }
 
 export interface Pile {

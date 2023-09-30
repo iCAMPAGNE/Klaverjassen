@@ -2,14 +2,15 @@
     <button *ngIf="showingFullScreen()" class="full-screen-button" (click)="openFullscreen()">Klik hier voor volledig scherm</button>
 
     <div class="score-board">
-        <div style="">Ronde {{round}} van 16</div>
+        <div>Ronde {{round}} van 16</div>
+        <div>Rondespeler: {{PlayerNames[roundPlayer]}}</div>
         <table>
             <col>
             <col>
             <col>
             <tr>
                 <td>Troef</td>
-                <td class="troef-symbol">{{troefSymbol}}</td>
+                <td class="troef-symbol">{{trumpSymbol}}</td>
                 <td></td>
             </tr>
             <tr>
@@ -63,24 +64,24 @@
             <div class="center-area">
                 <div class="card-format north-play" style="background-color: indigo;">
                                     <div class="card-placeholder north">
-                                        <div class="way" [ngClass]="{'playing': player === Players[0]}">N</div>
+                                        <div class="way" [ngClass]="{'playing': battlePlayer === 0}">N</div>
                                     </div>
                 </div>
                 <div style="display:flex; justify-content: space-between;">
                     <div class="card-format">
                                         <div class="card-placeholder west">
-                                            <div class="way" [ngClass]="{'playing': player === Players[3]}">W</div>
+                                            <div class="way" [ngClass]="{'playing': battlePlayer === 3}">W</div>
                                         </div>
                     </div>
                     <div class="card-format">
                                         <div class="card-placeholder east">
-                                            <div class="way" [ngClass]="{'playing': player === Players[1]}">O</div>
+                                            <div class="way" [ngClass]="{'playing': battlePlayer === 1}">O</div>
                                         </div>
                     </div>
                 </div>
                 <div class="card-format south-play">
                                     <div class="card-placeholder south">
-                                        <div class="way" [ngClass]="{'playing': player === Players[2]}">Z</div>
+                                        <div class="way" [ngClass]="{'playing': battlePlayer === 2}">Z</div>
                                     </div>
                 </div>
             </div>
