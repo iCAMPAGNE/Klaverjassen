@@ -3,7 +3,7 @@ export interface Card {
     id: number;
     nr: number;
     imageUrl: string;
-    suit: SUIT;
+    suitNr: number;
     moving: boolean;
     x?: number;
     y?: number;
@@ -15,17 +15,9 @@ export interface Pile {
     cards: Card[];
 }
 
-
-export const SUITS = {
-    CLUBS: { name: 'clubs', symbol: '♧'},
-    DIAMONDS: { name:  'diamonds', symbol: '♦'},
-    SPADES: { name: 'spades', symbol: '♤'},
-    HEARTS: { name: 'hearts', symbol: '♥'}
-};
-
-export enum SUIT {
-    CLUBS = 'clubs',
-    DIAMONDS = 'diamonds',
-    SPADES = 'spades',
-    HEARTS = 'hearts'
-}
+export const SUIT = [
+    { name: 'clubs', symbol: '♧'},
+    { name: 'diamonds', symbol: '♦'},
+    { name: 'spades', symbol: '♤'},
+    { name: 'hearts', symbol: '♥'}
+]

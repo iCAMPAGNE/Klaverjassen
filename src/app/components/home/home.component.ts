@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, ElementRef, HostListener, OnInit} from '@angular/core';
-import {Card, SUIT, SUITS} from "../../models/model";
+import {Card, SUIT} from "../../models/model";
 
 @Component({
   selector: 'app-home',
@@ -16,8 +16,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   cards: Card[] = [];
   cardsOfPlayers: Card[][] = [];
-  trump: SUIT = SUIT.CLUBS;
-  trumpSymbol: string = SUITS.CLUBS.symbol;
+  trumpSuitNr: number = 0;
+  trumpSymbol: string = SUIT[this.trumpSuitNr].symbol;
   offsetSouthX: number = 0;
   offsetSouthXdiff: number = 0;
   offsetSouthY: number = 0;
@@ -88,24 +88,24 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let id:number = 0;
     const spread: number[] = [];
     this.cards = [];
-    Object.values(SUIT).forEach((suit:SUIT) => {
+    for (let suitNr = 0; suitNr < 4; suitNr++) {
       for (let value = 7; value <= 14; value++) {
         let imageUrl = 'assets/img/';
         switch (value) {
           case 11:
-            imageUrl += 'jack_of_' + suit;
+            imageUrl += 'jack_of_' + SUIT[suitNr].name;
             break;
           case 12:
-            imageUrl += 'queen_of_' + suit;
+            imageUrl += 'queen_of_' + SUIT[suitNr].name;
             break;
           case 13:
-            imageUrl += 'king_of_' + suit;
+            imageUrl += 'king_of_' + SUIT[suitNr].name;
             break;
           case 14:
-            imageUrl += 'ace_of_' + suit;
+            imageUrl += 'ace_of_' + SUIT[suitNr].name;
             break;
           default:
-            imageUrl += value.toLocaleString() + '_of_' + suit;
+            imageUrl += value.toLocaleString() + '_of_' + SUIT[suitNr].name;
         }
         imageUrl += '.png';
 
@@ -113,14 +113,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
           id: id++,
           nr: value,
           imageUrl: imageUrl,
-          suit: suit,
+          suitNr: suitNr,
           moving: false,
           used: false,
           value: 0
         });
         spread.push(this.cards.length - 1);
       }
-    });
+    };
 
     for (let playerNr = 0; playerNr < 4; playerNr++) {
       this.cardsOfPlayers[playerNr] = [];
@@ -136,9 +136,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   private sortCardsForPlayer(card1: Card, card2: Card): number {
     const orderNumbers:number[][] = [[8,9,14,12,15,10,11,13],[0,1,2,6,3,4,5,7]];
-    const card1order:number = orderNumbers[card1.suit === this.trump ? 0 : 1][card1.nr -7];
-    const card2order:number = orderNumbers[card2.suit === this.trump ? 0 : 1][card2.nr -7];
-    return card1.suit < card2.suit ? -1 : card1.suit === card2.suit ? card1order < card2order ? 1 : -1 : 1;
+    const card1order:number = orderNumbers[card1.suitNr === this.trumpSuitNr ? 0 : 1][card1.nr -7];
+    const card2order:number = orderNumbers[card2.suitNr === this.trumpSuitNr ? 0 : 1][card2.nr -7];
+    return card1.suitNr < card2.suitNr ? -1 : card1.suitNr === card2.suitNr ? card1order < card2order ? 1 : -1 : 1;
   }
 
   resizeLayout() {
@@ -210,13 +210,16 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.cardsOfPlayers.filter((cardsOfPlayer: Card[], index) => index != playerNr).forEach((cardsOfOtherPlayer: Card[]) => cardsOfOtherPlayer.filter(card => card.moving).forEach(card => this.calculatePoints(card)));
 
     // Determine suit of first player in this battle.
-    let suit:SUIT | undefined;
-    for (let i = playerNr + 1; i < playerNr + 4 && !suit; i++) {
-      suit = this.cardsOfPlayers[i % 4].find(card => card.moving)?.suit;
+    let suitNr:number  | undefined;
+    for (let i = playerNr + 1; i < playerNr + 4 && suitNr == null; i++) {
+      const card:Card | undefined = this.cardsOfPlayers[i % 4].find(card => card.moving);
+      if (card != undefined) {
+        suitNr = card.suitNr;
+      }
     }
-    if (suit) { // If player has card(s) with suit, only these are allowed.
-      if (cards.some(card => card.suit === suit)) {
-        return cards.filter(card => card.suit === suit);
+    if (suitNr != null) { // If player has card(s) with suit, only these are allowed.
+      if (cards.some(card => card.suitNr === suitNr)) {
+        return cards.filter(card => card.suitNr === suitNr);
       }
     }
 
@@ -231,16 +234,16 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
 
     // If player can't follow suit, try 'troef'
-    if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.suit === this.trump)) {
+    if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.suitNr === this.trumpSuitNr)) {
       // Check whether someone else already played 'troef'.
-      const highestTroefScore:number = this.cardsOfPlayers.map(cardsOfPlayer => cardsOfPlayer.find(card => card.moving && card.suit === this.trump)?.value || 0).reduce((highestScore, score) => Math.max(highestScore, score), 0);
+      const highestTroefScore:number = this.cardsOfPlayers.map(cardsOfPlayer => cardsOfPlayer.find(card => card.moving && card.suitNr === this.trumpSuitNr)?.value || 0).reduce((highestScore, score) => Math.max(highestScore, score), 0);
       if (highestTroefScore > 0) {
         // Someone played trump so check if you have trump-cards of higher value
-        if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.suit === this.trump && card.value > highestTroefScore)) {
-          return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.suit === this.trump && card.value > highestTroefScore);
+        if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.suitNr === this.trumpSuitNr && card.value > highestTroefScore)) {
+          return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.suitNr === this.trumpSuitNr && card.value > highestTroefScore);
         } else {
           // If not, all other cards (except trump) are allowed.
-          return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.suit !== this.trump);
+          return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.suitNr !== this.trumpSuitNr);
         }
       }
     }
@@ -335,19 +338,19 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
 
     let winnerPlayer:number = -1
-    const suitStarted:SUIT = this.cardsOfPlayers[this.battlePlayer].find(card => card.moving)?.suit || this.trump;
-    if (suitStarted !== this.trump) {
-      const playerWithHighestTrump: number[] = this.cardsOfPlayers.map((cardsOfPlayer, index) => [cardsOfPlayer.find(card => card.moving && card.suit === this.trump)?.value ?? -1, index]).sort((score1, score2) => score1[0] > score2[0] ? -1 : 1)[0];
-      console.log(playerWithHighestTrump);
+    const suitStarted:number = this.cardsOfPlayers[this.battlePlayer].find(card => card.moving)?.suitNr || this.trumpSuitNr;
+    if (suitStarted !== this.trumpSuitNr) {
+      const playerWithHighestTrump: number[] = this.cardsOfPlayers.map((cardsOfPlayer, index) => [cardsOfPlayer.find(card => card.moving && card.suitNr === this.trumpSuitNr)?.value ?? -1, index]).sort((score1, score2) => score1[0] > score2[0] ? -1 : 1)[0];
+//      console.log(playerWithHighestTrump);
       if (playerWithHighestTrump[0] >= 0) {
-        console.log('Winner with troef is player ' + playerWithHighestTrump[1] + ' with ' + playerWithHighestTrump[0] + ' points');
+//        console.log('Winner with troef is player ' + playerWithHighestTrump[1] + ' with ' + playerWithHighestTrump[0] + ' points');
         winnerPlayer = playerWithHighestTrump[1];
       }
     }
     if (winnerPlayer < 0) {
       // Who has the card with the highest value with the same suit as the player who started the battle?
-      const playerWithHighestSuit: number[] = this.cardsOfPlayers.map((cardsOfPlayer, index) => [cardsOfPlayer.find(card => card.moving && card.suit === suitStarted)?.value ?? -1, index]).sort((score1, score2) => score1[0] > score2[0] ? -1 : 1)[0];
-      console.log('Winner with suit is player ' + playerWithHighestSuit[1] + ' with ' + playerWithHighestSuit[0] + ' points');
+      const playerWithHighestSuit: number[] = this.cardsOfPlayers.map((cardsOfPlayer, index) => [cardsOfPlayer.find(card => card.moving && card.suitNr === suitStarted)?.value ?? -1, index]).sort((score1, score2) => score1[0] > score2[0] ? -1 : 1)[0];
+//      console.log('Winner with suit is player ' + playerWithHighestSuit[1] + ' with ' + playerWithHighestSuit[0] + ' points');
       winnerPlayer = playerWithHighestSuit[1];
     }
 
@@ -412,7 +415,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   private calculatePoints(card: Card): Card {
     let pointsArray: number[][] = [[0,0,0,10,2,3,4,11],[0,0,14,10,20,3,4,11]];
-    card.value = pointsArray[card?.suit == this.trump ? 1 : 0][(card?.nr || 7) - 7];
+    card.value = pointsArray[card?.suitNr == this.trumpSuitNr ? 1 : 0][(card?.nr || 7) - 7];
     return card;
   }
 }
