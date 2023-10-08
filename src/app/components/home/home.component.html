@@ -20,22 +20,29 @@
             </tr>
             <tr>
                 <td>Score</td>
-                <td>{{scoreNorthSouth}}</td>
-                <td>{{scoreEastWest}}</td>
+                <td>{{northSouthRoundScore}}</td>
+                <td>{{eastWestRoundScore}}</td>
             </tr>
             <tr>
                 <td>Roem</td>
-                <td>{{roemNorthSouth}}</td>
-                <td>{{roemEastWest}}</td>
+                <td>{{northSouthRoundKudos}}</td>
+                <td>{{eastWestRoundKudos}}</td>
             </tr>
-            <tr>
+            <tr class="total">
                 <td>Totaal</td>
-                <td>{{scoreNorthSouth + roemNorthSouth}}</td>
-                <td>{{scoreEastWest + roemEastWest}}</td>
+                <td>{{northSouthTotalScore}}</td>
+                <td>{{eastWestTotalScore}}</td>
             </tr>
         </table>
-    <div [innerHtml]="message"></div>
+        <div [innerHtml]="message"></div>
     </div>
+
+    <div class="score-popup" [ngClass]="{'show': numberOfPlayed == 4}">
+        <span>Deze slag is voor {{battleWinner}} met {{battleScore}} punten</span>
+        <span *ngIf="kudoScore > 0"> en {{kudoScore}} roem</span>.
+    </div>
+
+    <div class="score-popup" [ngClass]="{'show': endOfRound}" [innerHtml]="roundWinnerText"></div>
 
     <div class="play-field">
         <div class="side-column">
@@ -66,23 +73,27 @@
                                     <div class="card-placeholder north">
                                         <div class="way" [ngClass]="{'playing': battlePlayer === 0}">N</div>
                                     </div>
+                    <div style="width: 100%; text-align: center;">{{showValueOfCard(0)}}</div>
                 </div>
-                <div style="display:flex; justify-content: space-between;">
+                <div class="east-west-play">
                     <div class="card-format">
                                         <div class="card-placeholder west">
                                             <div class="way" [ngClass]="{'playing': battlePlayer === 3}">W</div>
                                         </div>
+                        <div style="width: 100%; text-align: center;">{{showValueOfCard(3)}}</div>
                     </div>
                     <div class="card-format">
                                         <div class="card-placeholder east">
                                             <div class="way" [ngClass]="{'playing': battlePlayer === 1}">O</div>
                                         </div>
+                        <div style="width: 100%; text-align: center;">{{showValueOfCard(1)}}</div>
                     </div>
                 </div>
                 <div class="card-format south-play">
                                     <div class="card-placeholder south">
                                         <div class="way" [ngClass]="{'playing': battlePlayer === 2}">Z</div>
                                     </div>
+                    <div style="width: 100%; text-align: center;">{{showValueOfCard(2)}}</div>
                 </div>
             </div>
         </div>

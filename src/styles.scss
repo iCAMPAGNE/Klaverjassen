@@ -95,6 +95,10 @@ div.south-me {
 div.north-play, div.south-play {
     margin-left: calc(50% - 0.5*$card_width);
 }
+div.east-west-play {
+    display:flex;
+    justify-content: space-between;
+}
 
 div.card-columns {
     display: flex;
@@ -225,7 +229,7 @@ div.score-board {
     left: calc(0.8*$body_width);
     height: calc(0.3*$body_height);
     width: calc($body_width/7);
-    background-color: #88BB88;
+    background-color: darkseagreen;
     border-radius: 3%;
     padding: 1%;
     font-size: clamp(1px, 1.4vw, 2vh);
@@ -237,7 +241,6 @@ div.score-board {
 
     > table {
         width: 100%;
-        margin-bottom: calc(0.03*$available_height);
         td {
             &:nth-child(2), &:nth-child(3) {
                 text-align: center;
@@ -245,6 +248,29 @@ div.score-board {
             &.troef-symbol {
                 font-size: xxx-large;
             }
+        };
+        tr.total > td {
+            padding-top: 20%;
+            font-weight: bold;
         }
     }
+}
+
+div.score-popup {
+    visibility: hidden;
+    position: absolute;
+    z-index: 52;
+    top: calc(0.65*$body_height);
+    left: calc(0.75*$body_width);
+    height: calc(0.1*$body_height);
+    width: calc(0.25*$body_width);
+    background-color: palegreen;
+    border-radius: 3%;
+    padding: 1%;
+    font-size: clamp(1px, 1.4vw, 2vh);
+
+    &.show {
+        visibility: visible;
+    }
+
 }

@@ -42,12 +42,20 @@ export class HomeComponent implements OnInit, AfterViewInit {
   cardSouth?: Card;
   cardWest?: Card;
 
-  scoreNorthSouth: number = 0;
-  scoreEastWest: number = 0;
-  roemNorthSouth: number = 0;
-  roemEastWest: number = 0;
+  northSouthRoundScore: number = 0;
+  eastWestRoundScore: number = 0;
+  northSouthRoundKudos: number = 0;
+  eastWestRoundKudos: number = 0;
+  northSouthTotalScore: number = 0;
+  eastWestTotalScore: number = 0;
 
   round: number = 1;
+  battleWinner: string = '';
+  battleScore: number = 0;
+  kudoScore:number = 0;
+
+  endOfRound:boolean = false;
+  roundWinnerText: string = '';
 
   message: string = '';
 
@@ -120,7 +128,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         });
         spread.push(this.cards.length - 1);
       }
-    };
+    }
 
     for (let playerNr = 0; playerNr < 4; playerNr++) {
       this.cardsOfPlayers[playerNr] = [];
@@ -187,6 +195,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     card.y = this.offsetSouthY;
     card.used = true;
     card.moving = true;
+    this.calculatePoints(card);
     this.cardSouth = card;
     setTimeout(() => {
       this.nextPlayer();
@@ -199,6 +208,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
     return true;
   }
 
+  showValueOfCard(playerNr: number) {
+    return this.cardsOfPlayers[playerNr].find(card => card.moving)?.value;
+  }
+
   private allowedCardsForPlayerInCurrentBattle(playerNr: number): Card[] {
     const cards: Card[] = this.cardsOfPlayers[playerNr].filter(card => !card.used);
     // If player started battle, every card is allowed.
@@ -206,18 +219,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
       return cards;
     }
 
-    // Calculate scores of cards played so far
-    this.cardsOfPlayers.filter((cardsOfPlayer: Card[], index) => index != playerNr).forEach((cardsOfOtherPlayer: Card[]) => cardsOfOtherPlayer.filter(card => card.moving).forEach(card => this.calculatePoints(card)));
-
     // Determine suit of first player in this battle.
     let suitNr:number  | undefined;
-    for (let i = playerNr + 1; i < playerNr + 4 && suitNr == null; i++) {
+    for (let i = playerNr + 1; i < playerNr + 4 && suitNr == undefined; i++) {
       const card:Card | undefined = this.cardsOfPlayers[i % 4].find(card => card.moving);
       if (card != undefined) {
         suitNr = card.suitNr;
       }
     }
-    if (suitNr != null) { // If player has card(s) with suit, only these are allowed.
+    if (suitNr != undefined) { // If player has card(s) with suit, only these are allowed.
       if (cards.some(card => card.suitNr === suitNr)) {
         return cards.filter(card => card.suitNr === suitNr);
       }
@@ -233,7 +243,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
     }
 
-    // If player can't follow suit, try 'troef'
+    // If player can't follow suit, try 'trump'
     if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.suitNr === this.trumpSuitNr)) {
       // Check whether someone else already played 'troef'.
       const highestTroefScore:number = this.cardsOfPlayers.map(cardsOfPlayer => cardsOfPlayer.find(card => card.moving && card.suitNr === this.trumpSuitNr)?.value || 0).reduce((highestScore, score) => Math.max(highestScore, score), 0);
@@ -271,10 +281,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
             card.y = this.offsetNorthY;
             card.moving = true;
             card.used = true;
+            this.calculatePoints(card);
             this.cardNorth = card;
           }
           setTimeout(() => {
-            this.cardsOfPlayers[0].sort((card1:Card, card2: Card) => card1.used ? -1 : 1);
+            this.cardsOfPlayers[0].sort((card1:Card) => card1.used ? -1 : 1);
             this.nextPlayer();
             if (this.numberOfPlayed === 4) {
               this.endOfBattle();
@@ -292,10 +303,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
             card.y = this.offsetEastY;
             card.moving = true;
             card.used = true;
+            this.calculatePoints(card);
             this.cardEast = card;
           }
           setTimeout(() => {
-            this.cardsOfPlayers[1].sort((card1:Card, card2: Card) => card1.used ? -1 : 1);
+            this.cardsOfPlayers[1].sort((card1:Card) => card1.used ? -1 : 1);
             this.nextPlayer();
             if (this.numberOfPlayed === 4) {
               this.endOfBattle();
@@ -313,10 +325,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
             card.y = this.offsetWestY;
             card.used = true;
             card.moving = true;
+            this.calculatePoints(card);
             this.cardWest = card;
           }
           setTimeout(() => {
-            this.cardsOfPlayers[3].sort((card1:Card, card2: Card) => card1.used ? -1 : 1);
+            this.cardsOfPlayers[3].sort((card1:Card) => card1.used ? -1 : 1);
             this.nextPlayer();
             if (this.numberOfPlayed === 4) {
               this.endOfBattle();
@@ -330,28 +343,35 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   endOfBattle() {
-    this.cardsOfPlayers.forEach(cardsOfPlayer => { // Todo only calculate for last player, the rest is already known.
-      const card = cardsOfPlayer.find(card => card.moving);
-      if (card) {
-        this.calculatePoints(card);
-      }
-    });
-
-    let winnerPlayer:number = -1
+    let winnerPlayer:number = -1;
     const suitStarted:number = this.cardsOfPlayers[this.battlePlayer].find(card => card.moving)?.suitNr || this.trumpSuitNr;
     if (suitStarted !== this.trumpSuitNr) {
-      const playerWithHighestTrump: number[] = this.cardsOfPlayers.map((cardsOfPlayer, index) => [cardsOfPlayer.find(card => card.moving && card.suitNr === this.trumpSuitNr)?.value ?? -1, index]).sort((score1, score2) => score1[0] > score2[0] ? -1 : 1)[0];
-//      console.log(playerWithHighestTrump);
+      const playerWithHighestTrump: number[] = this.cardsOfPlayers.map((cardsOfPlayer, index) => [cardsOfPlayer.find(card => card.moving && card.suitNr === this.trumpSuitNr)?.value ?? -1, index]).sort((score1, score2) => score1[0] > score2[0] ? -1 : score1[0] == score2[0] && score1[1] == this.battlePlayer ? -1 : 1)[0];
       if (playerWithHighestTrump[0] >= 0) {
-//        console.log('Winner with troef is player ' + playerWithHighestTrump[1] + ' with ' + playerWithHighestTrump[0] + ' points');
         winnerPlayer = playerWithHighestTrump[1];
       }
     }
     if (winnerPlayer < 0) {
       // Who has the card with the highest value with the same suit as the player who started the battle?
-      const playerWithHighestSuit: number[] = this.cardsOfPlayers.map((cardsOfPlayer, index) => [cardsOfPlayer.find(card => card.moving && card.suitNr === suitStarted)?.value ?? -1, index]).sort((score1, score2) => score1[0] > score2[0] ? -1 : 1)[0];
-//      console.log('Winner with suit is player ' + playerWithHighestSuit[1] + ' with ' + playerWithHighestSuit[0] + ' points');
+      const playerWithHighestSuit: number[] = this.cardsOfPlayers.map((cardsOfPlayer, index) => [cardsOfPlayer.find(card => card.moving && card.suitNr === suitStarted)?.value ?? -1, index]).sort((score1, score2) => score1[0] > score2[0] ? -1 : score1[0] == score2[0] && score1[1] == this.battlePlayer ? -1 : 1)[0];
       winnerPlayer = playerWithHighestSuit[1];
+    }
+    this.battleWinner = this.PlayerNames[winnerPlayer];
+    let totalScore = this.cards.filter((card: Card) => card.moving).map(card => this.calculatePoints(card).value).reduce((totalScore: number, cardScore) => totalScore + cardScore);
+    const lastBattleOfRound: boolean = !this.cardsOfPlayers[0].some(card => !card.used);
+    if (lastBattleOfRound) {
+      totalScore += 10;
+    }
+    this.battleScore = totalScore;
+    const sameSuits = this.cards.filter((card: Card) => card.moving).reduce((result: number[], card) => {if (card.nr > 10) result[card.nr]++; return result;}, new Array(13).fill(0)).reduce((max:number, elem) => elem > max ? elem : max, 0);
+    console.log('sameSuits =' + sameSuits);
+    this.kudoScore = sameSuits == 4 ? 100 : 0;
+    const consecutive = this.cards.filter((card: Card) => card.moving).sort((a,b) => a.nr < b.nr ? -1:1)
+        .reduce((result, element) => [element.suitNr,element.nr,element.suitNr === result[0] && element.nr == result[1] + 1 ? result[2] + 1 : result[2] == 1 ? 0 : result[2]], [0,0,0]);
+    console.log('consecutive', consecutive);
+    this.kudoScore += consecutive[2] == 3 ? 50 : consecutive[2] == 2 ? 20 : 0;
+    if (this.cardsOfPlayers[this.battlePlayer].find(card => card.moving)?.suitNr === this.trumpSuitNr && this.kudoScore > 0 && this.cards.filter((card: Card) => card.moving).some(card => card.nr === 12) && this.cards.filter((card: Card) => card.moving).some(card => card.nr === 13)) {
+      this.kudoScore += 20;
     }
 
     setTimeout(() => {
@@ -374,15 +394,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
           (this.elementRef.nativeElement.querySelector('#card-' + this.cardWest?.id) as HTMLElement).style.visibility = 'hidden';
         }, 700);
       }
-      let totalScore = this.cards.filter((card: Card) => card.moving).map(card => this.calculatePoints(card).value).reduce((totalScore: number, cardScore) => totalScore + cardScore);
-      const lastBattleOfRound: boolean = !this.cardsOfPlayers[0].some(card => !card.used);
-      if (lastBattleOfRound) {
-        totalScore += 10;
-      }
       if ([0,2].includes(winnerPlayer)) {
-        this.scoreNorthSouth += totalScore;
+        this.northSouthRoundScore += totalScore;
+        this.northSouthRoundKudos += this.kudoScore;
       } else {
-        this.scoreEastWest += totalScore;
+        this.eastWestRoundScore += totalScore;
+        this.eastWestRoundKudos += this.kudoScore;
       }
 
       this.battlePlayer = winnerPlayer;
@@ -393,19 +410,66 @@ export class HomeComponent implements OnInit, AfterViewInit {
         if (this.round > 16) {
           this.message = 'Game over';
         } else {
-          this.round++;
-          this.roundPlayer = (this.roundPlayer + 1) % 4;
-          this.battlePlayer = this.roundPlayer;
-          this.message = 'Start ronde #' + this.round;
+          const halfTotalScore: number = (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos) / 2;
+          if ([0,2].includes(this.roundPlayer)) {
+            if (this.northSouthRoundScore + this.northSouthRoundKudos >= halfTotalScore + 1) {
+              // this.northSouthTotalScore += this.northSouthRoundScore + (this.northSouthRoundScore >= 162 ? 100 : 0);
+              // this.eastWestTotalScore += this.eastWestRoundScore;
+              this.roundWinnerText = 'Noord/Zuid hebben deze ronde gewonnen en krijgen hun behaalde punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + (this.northSouthRoundScore >= 162 ? 100 : 0));
+              this.roundWinnerText += '<br>en Oost/West krijgen hun ' + (this.eastWestRoundScore + this.eastWestRoundKudos) + ' punten.';
+            } else {
+              this.roundWinnerText = 'Oost/West heeft gewonnen en krijgt alle punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos);
+              // this.eastWestTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
+            }
+          } else {
+            if (this.eastWestRoundScore + this.eastWestRoundKudos >= halfTotalScore + 1) {
+              // this.northSouthTotalScore += this.northSouthRoundScore;
+              // this.eastWestTotalScore += this.eastWestRoundScore + (this.eastWestRoundScore >= 162 ? 100 : 0);
+              this.roundWinnerText = 'Oost/West heeft deze ronde gewonnen en krijgt hun behaalde punten: ' + (this.eastWestRoundScore + this.eastWestRoundKudos + (this.eastWestRoundScore >= 162 ? 100 : 0));
+              this.roundWinnerText += '<br>en Noord/Zuid krijgen hun ' + (this.northSouthRoundScore + this.northSouthRoundKudos) + ' punten.';
+            } else {
+              this.roundWinnerText = 'Noord/Zuid heeft gewonnen en krijgt alle punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos);
+              // this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
+            }
+          }
+          // this.northSouthRoundScore = this.northSouthRoundKudos = this.eastWestRoundScore = this.eastWestRoundKudos = 0;
+          this.endOfRound = true;
           setTimeout(() => {
-            this.startRound();
-            this.nextTurn();
-          }, 2000);
+            if ([0,2].includes(this.roundPlayer)) {
+              if (this.northSouthRoundScore + this.northSouthRoundKudos >= halfTotalScore + 1) {
+                this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + (this.northSouthRoundScore >= 162 ? 100 : 0);
+                this.eastWestTotalScore += this.eastWestRoundScore + this.eastWestRoundKudos;
+                // this.roundWinner = 'Noord/Zuid';
+              } else {
+                // this.roundWinner = 'Oost/West';
+                this.eastWestTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
+              }
+            } else {
+              if (this.eastWestRoundScore + this.eastWestRoundKudos >= halfTotalScore + 1) {
+                this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos;
+                this.eastWestTotalScore += this.eastWestRoundScore + this.eastWestRoundKudos + (this.eastWestRoundScore >= 162 ? 100 : 0);
+                // this.roundWinner = 'Oost/West';
+              } else {
+                // this.roundWinner = 'Noord/Zuid';
+                this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
+              }
+            }
+            this.northSouthRoundScore = this.northSouthRoundKudos = this.eastWestRoundScore = this.eastWestRoundKudos = 0;
+
+            this.endOfRound = false;
+            this.round++;
+            this.roundPlayer = (this.roundPlayer + 1) % 4;
+            this.battlePlayer = this.roundPlayer;
+            setTimeout(() => {
+              this.startRound();
+              this.nextTurn();
+            }, 2000);
+          }, 10000);
         }
       } else {
         this.nextTurn();
       }
-    }, 3000);
+    }, 10000);
   }
 
   private nextPlayer() {
