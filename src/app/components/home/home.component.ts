@@ -8,16 +8,21 @@ import {Card, SUIT} from "../../models/model";
 })
 export class HomeComponent implements OnInit, AfterViewInit {
   showFullScreenButton: boolean = true;
+  errorMessage: string = '';
 
   PlayerNames: string[] = ['Noord', 'Oost', 'Zuid', 'West'];
   roundPlayer: number = 2;
   battlePlayer: number = this.roundPlayer;
-  numberOfPlayed: number = 0;
+  numberOfPlayed: number = -2;
 
   cards: Card[] = [];
   cardsOfPlayers: Card[][] = [];
   trumpSuitNr: number = 0;
   trumpSymbol: string = SUIT[this.trumpSuitNr].symbol;
+  SUITS = SUIT;
+
+  playersPlay: boolean[] = new Array(4).fill(undefined);
+
   offsetSouthX: number = 0;
   offsetSouthXdiff: number = 0;
   offsetSouthY: number = 0;
@@ -56,6 +61,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   endOfRound:boolean = false;
   roundWinnerText: string = '';
+
+  gameOver: boolean = false;
 
   message: string = '';
 
@@ -140,13 +147,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.cardsOfPlayers[playerNr].sort((card1, card2) => this.sortCardsForPlayer(card1, card2));
     }
     this.resizeLayout();
+    this.aksPlayOrPass();
   }
 
   private sortCardsForPlayer(card1: Card, card2: Card): number {
     const orderNumbers:number[][] = [[8,9,14,12,15,10,11,13],[0,1,2,6,3,4,5,7]];
     const card1order:number = orderNumbers[card1.suitNr === this.trumpSuitNr ? 0 : 1][card1.nr -7];
     const card2order:number = orderNumbers[card2.suitNr === this.trumpSuitNr ? 0 : 1][card2.nr -7];
-    return card1.suitNr < card2.suitNr ? -1 : card1.suitNr === card2.suitNr ? card1order < card2order ? 1 : -1 : 1;
+    return card1.suitNr == this.trumpSuitNr ? card1order > card2order ? -1 : 1 : card2.suitNr != this.trumpSuitNr && card1.suitNr > card2.suitNr ? -1 : 1;
   }
 
   resizeLayout() {
@@ -188,6 +196,57 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.cardSouth.y = this.offsetSouthY;
       }
     })
+  }
+
+  private aksPlayOrPass() {
+    let playerNr:number = this.roundPlayer + 1;
+    while (playerNr % 4 !== 2) {
+      setTimeout((nr) => {
+        this.playersPlay[nr % 4] = this.cardsOfPlayers[nr % 4].filter((card:Card) => card.suitNr === this.trumpSuitNr).length > 2;
+      }, playerNr * 1000, playerNr);
+      playerNr++;
+    }
+    setTimeout(() => {
+      this.numberOfPlayed = -1;
+    }, playerNr * 1000);
+  }
+
+  acceptTrump(play: boolean) {
+    this.playersPlay[2] = play;
+    let playerNr:number = 3;
+    while (playerNr % 4 !== (this.roundPlayer + 1) % 4) {
+      setTimeout((nr) => {
+        this.playersPlay[nr % 4] = this.cardsOfPlayers[nr % 4].filter((card:Card) => card.suitNr === this.trumpSuitNr).length > 2;
+      }, playerNr * 1000, playerNr);
+      playerNr++;
+    }
+    setTimeout(() => {
+      if (!this.playersPlay.some(playerPlay => playerPlay)) {
+        if (this.roundPlayer == 2) {
+          this.numberOfPlayed = -3;
+        } else {
+          this.trumpSuitNr = (this.trumpSuitNr + 1 + Math.floor(Math.random() * 3)) % 4;
+          this.trumpSymbol = SUIT[this.trumpSuitNr].symbol;
+          this.playersPlay = new Array(4).fill(undefined);
+          this.cardsOfPlayers[2].sort((card1, card2) => this.sortCardsForPlayer(card1, card2));
+          this.numberOfPlayed = 0;
+          this.nextTurn();
+        }
+      } else {
+        this.numberOfPlayed = 0;
+        if (this.battlePlayer !== 2) {
+          this.nextTurn();
+        }
+      }
+    }, playerNr * 1000 + 100)
+    this.numberOfPlayed = -2;
+  }
+
+  selectAnotherTrump(trumpNr: number) {
+    this.trumpSuitNr = trumpNr;
+    this.trumpSymbol = SUIT[trumpNr].symbol;
+    this.cardsOfPlayers[2].sort((card1, card2) => this.sortCardsForPlayer(card1, card2));
+    this.numberOfPlayed = 0;
   }
 
   cardClick(card: Card): boolean {
@@ -264,7 +323,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     if (card.moving) {
       return false;
     }
-    if (this.battlePlayer !== 2 || this.numberOfPlayed === 4) {
+    if (this.battlePlayer !== 2 || [-2,-1,4].includes(this.numberOfPlayed)) {
       return true; // Disable all cards if it's not your turn
     }
 
@@ -283,6 +342,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
             card.used = true;
             this.calculatePoints(card);
             this.cardNorth = card;
+          } else {
+            console.error('Player 0 has no allowed card in ', this.cardsOfPlayers[0]);
           }
           setTimeout(() => {
             this.cardsOfPlayers[0].sort((card1:Card) => card1.used ? -1 : 1);
@@ -305,6 +366,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
             card.used = true;
             this.calculatePoints(card);
             this.cardEast = card;
+          } else {
+            console.error('Player 1 has no allowed card in ', this.cardsOfPlayers[1]);
           }
           setTimeout(() => {
             this.cardsOfPlayers[1].sort((card1:Card) => card1.used ? -1 : 1);
@@ -327,6 +390,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
             card.moving = true;
             this.calculatePoints(card);
             this.cardWest = card;
+          } else {
+            console.error('Player 3 has no allowed card in ', this.cardsOfPlayers[3]);
           }
           setTimeout(() => {
             this.cardsOfPlayers[3].sort((card1:Card) => card1.used ? -1 : 1);
@@ -344,7 +409,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   endOfBattle() {
     let winnerPlayer:number = -1;
-    const suitStarted:number = this.cardsOfPlayers[this.battlePlayer].find(card => card.moving)?.suitNr || this.trumpSuitNr;
+    const suitStarted:number = this.cardsOfPlayers[this.battlePlayer].find(card => card.moving)?.suitNr || 0; // because typescript sees ?.0 also as false
     if (suitStarted !== this.trumpSuitNr) {
       const playerWithHighestTrump: number[] = this.cardsOfPlayers.map((cardsOfPlayer, index) => [cardsOfPlayer.find(card => card.moving && card.suitNr === this.trumpSuitNr)?.value ?? -1, index]).sort((score1, score2) => score1[0] > score2[0] ? -1 : score1[0] == score2[0] && score1[1] == this.battlePlayer ? -1 : 1)[0];
       if (playerWithHighestTrump[0] >= 0) {
@@ -364,11 +429,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
     this.battleScore = totalScore;
     const sameSuits = this.cards.filter((card: Card) => card.moving).reduce((result: number[], card) => {if (card.nr > 10) result[card.nr]++; return result;}, new Array(13).fill(0)).reduce((max:number, elem) => elem > max ? elem : max, 0);
-    console.log('sameSuits =' + sameSuits);
     this.kudoScore = sameSuits == 4 ? 100 : 0;
     const consecutive = this.cards.filter((card: Card) => card.moving).sort((a,b) => a.nr < b.nr ? -1:1)
         .reduce((result, element) => [element.suitNr,element.nr,element.suitNr === result[0] && element.nr == result[1] + 1 ? result[2] + 1 : result[2] == 1 ? 0 : result[2]], [0,0,0]);
-    console.log('consecutive', consecutive);
     this.kudoScore += consecutive[2] == 3 ? 50 : consecutive[2] == 2 ? 20 : 0;
     if (this.cardsOfPlayers[this.battlePlayer].find(card => card.moving)?.suitNr === this.trumpSuitNr && this.kudoScore > 0 && this.cards.filter((card: Card) => card.moving).some(card => card.nr === 12) && this.cards.filter((card: Card) => card.moving).some(card => card.nr === 13)) {
       this.kudoScore += 20;
@@ -407,69 +470,85 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.cards.forEach(c => c.moving = false);
       this.message = '';
       if (lastBattleOfRound) {
-        if (this.round > 16) {
-          this.message = 'Game over';
+        const halfTotalScore: number = (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos) / 2;
+        if ([0,2].includes(this.roundPlayer)) {
+          if (this.northSouthRoundScore + this.northSouthRoundKudos >= halfTotalScore + 1) {
+            // this.northSouthTotalScore += this.northSouthRoundScore + (this.northSouthRoundScore >= 162 ? 100 : 0);
+            // this.eastWestTotalScore += this.eastWestRoundScore;
+            this.roundWinnerText = 'Noord/Zuid hebben deze ronde gewonnen en krijgen hun behaalde punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + (this.northSouthRoundScore >= 162 ? 100 : 0));
+            this.roundWinnerText += '<br>en Oost/West krijgen hun ' + (this.eastWestRoundScore + this.eastWestRoundKudos) + ' punten.';
+          } else {
+            this.roundWinnerText = 'Oost/West heeft gewonnen en krijgt alle punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos);
+            // this.eastWestTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
+          }
         } else {
-          const halfTotalScore: number = (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos) / 2;
+          if (this.eastWestRoundScore + this.eastWestRoundKudos >= halfTotalScore + 1) {
+            // this.northSouthTotalScore += this.northSouthRoundScore;
+            // this.eastWestTotalScore += this.eastWestRoundScore + (this.eastWestRoundScore >= 162 ? 100 : 0);
+            this.roundWinnerText = 'Oost/West heeft deze ronde gewonnen en krijgt hun behaalde punten: ' + (this.eastWestRoundScore + this.eastWestRoundKudos + (this.eastWestRoundScore >= 162 ? 100 : 0));
+            this.roundWinnerText += '<br>en Noord/Zuid krijgen hun ' + (this.northSouthRoundScore + this.northSouthRoundKudos) + ' punten.';
+          } else {
+            this.roundWinnerText = 'Noord/Zuid heeft gewonnen en krijgt alle punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos);
+            // this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
+          }
+        }
+        // this.northSouthRoundScore = this.northSouthRoundKudos = this.eastWestRoundScore = this.eastWestRoundKudos = 0;
+        this.endOfRound = true;
+        setTimeout(() => {
           if ([0,2].includes(this.roundPlayer)) {
             if (this.northSouthRoundScore + this.northSouthRoundKudos >= halfTotalScore + 1) {
-              // this.northSouthTotalScore += this.northSouthRoundScore + (this.northSouthRoundScore >= 162 ? 100 : 0);
-              // this.eastWestTotalScore += this.eastWestRoundScore;
-              this.roundWinnerText = 'Noord/Zuid hebben deze ronde gewonnen en krijgen hun behaalde punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + (this.northSouthRoundScore >= 162 ? 100 : 0));
-              this.roundWinnerText += '<br>en Oost/West krijgen hun ' + (this.eastWestRoundScore + this.eastWestRoundKudos) + ' punten.';
+              this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + (this.northSouthRoundScore >= 162 ? 100 : 0);
+              this.eastWestTotalScore += this.eastWestRoundScore + this.eastWestRoundKudos;
+              // this.roundWinner = 'Noord/Zuid';
             } else {
-              this.roundWinnerText = 'Oost/West heeft gewonnen en krijgt alle punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos);
-              // this.eastWestTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
+              // this.roundWinner = 'Oost/West';
+              this.eastWestTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
             }
           } else {
             if (this.eastWestRoundScore + this.eastWestRoundKudos >= halfTotalScore + 1) {
-              // this.northSouthTotalScore += this.northSouthRoundScore;
-              // this.eastWestTotalScore += this.eastWestRoundScore + (this.eastWestRoundScore >= 162 ? 100 : 0);
-              this.roundWinnerText = 'Oost/West heeft deze ronde gewonnen en krijgt hun behaalde punten: ' + (this.eastWestRoundScore + this.eastWestRoundKudos + (this.eastWestRoundScore >= 162 ? 100 : 0));
-              this.roundWinnerText += '<br>en Noord/Zuid krijgen hun ' + (this.northSouthRoundScore + this.northSouthRoundKudos) + ' punten.';
+              this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos;
+              this.eastWestTotalScore += this.eastWestRoundScore + this.eastWestRoundKudos + (this.eastWestRoundScore >= 162 ? 100 : 0);
+              // this.roundWinner = 'Oost/West';
             } else {
-              this.roundWinnerText = 'Noord/Zuid heeft gewonnen en krijgt alle punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos);
-              // this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
+              // this.roundWinner = 'Noord/Zuid';
+              this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
             }
           }
-          // this.northSouthRoundScore = this.northSouthRoundKudos = this.eastWestRoundScore = this.eastWestRoundKudos = 0;
-          this.endOfRound = true;
-          setTimeout(() => {
-            if ([0,2].includes(this.roundPlayer)) {
-              if (this.northSouthRoundScore + this.northSouthRoundKudos >= halfTotalScore + 1) {
-                this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + (this.northSouthRoundScore >= 162 ? 100 : 0);
-                this.eastWestTotalScore += this.eastWestRoundScore + this.eastWestRoundKudos;
-                // this.roundWinner = 'Noord/Zuid';
-              } else {
-                // this.roundWinner = 'Oost/West';
-                this.eastWestTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
-              }
-            } else {
-              if (this.eastWestRoundScore + this.eastWestRoundKudos >= halfTotalScore + 1) {
-                this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos;
-                this.eastWestTotalScore += this.eastWestRoundScore + this.eastWestRoundKudos + (this.eastWestRoundScore >= 162 ? 100 : 0);
-                // this.roundWinner = 'Oost/West';
-              } else {
-                // this.roundWinner = 'Noord/Zuid';
-                this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
-              }
-            }
-            this.northSouthRoundScore = this.northSouthRoundKudos = this.eastWestRoundScore = this.eastWestRoundKudos = 0;
+          this.northSouthRoundScore = this.northSouthRoundKudos = this.eastWestRoundScore = this.eastWestRoundKudos = 0;
 
+          setTimeout(() => {
             this.endOfRound = false;
-            this.round++;
-            this.roundPlayer = (this.roundPlayer + 1) % 4;
-            this.battlePlayer = this.roundPlayer;
-            setTimeout(() => {
+            this.numberOfPlayed = -2;
+            if (this.round >= 16) {
+              this.battlePlayer = 2;
+              this.playersPlay = new Array(4).fill(undefined);
+              this.gameOver = true;
+            } else {
+              this.roundPlayer = (this.roundPlayer + 1) % 4;
+              this.battlePlayer = this.roundPlayer;
+              this.round++;
+              this.trumpSuitNr = Math.floor(Math.random() * 4);
+              this.trumpSymbol = SUIT[this.trumpSuitNr].symbol;
+              this.playersPlay = new Array(4).fill(undefined);
               this.startRound();
-              this.nextTurn();
-            }, 2000);
-          }, 10000);
-        }
+            }
+          }, 2000);
+        }, 10000);
       } else {
         this.nextTurn();
       }
     }, 10000);
+  }
+
+  startNewGame() {
+    this.northSouthTotalScore = 0;
+    this.eastWestTotalScore = 0;
+    this.trumpSuitNr = 0;
+    this.trumpSymbol = this.SUITS[this.trumpSuitNr].symbol;
+    this.round = 1;
+    this.roundPlayer = 2;
+    this.gameOver = false;
+    this.startRound();
   }
 
   private nextPlayer() {
@@ -481,5 +560,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let pointsArray: number[][] = [[0,0,0,10,2,3,4,11],[0,0,14,10,20,3,4,11]];
     card.value = pointsArray[card?.suitNr == this.trumpSuitNr ? 1 : 0][(card?.nr || 7) - 7];
     return card;
+  }
+
+  closeErrorPopup() {
+    this.errorMessage = '';
   }
 }

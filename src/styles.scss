@@ -222,13 +222,57 @@ button.full-screen-button {
     align-content: space-around; font-size: large;
 }
 
+div.confirm-trump, div.choose-another-trump {
+    position: absolute;
+    visibility: hidden;
+    z-index: 51;
+    top: calc(0.6*$body_height);
+    left: calc(0.15*$body_width);
+    height: calc(0.2*$body_height);
+    width: calc(0.8*$body_width);
+    color: white;
+    background-color: darkolivegreen;
+    border-radius: 3%;
+    padding: 1%;
+    text-align: center;
+    font-size: clamp(1px, 2vw, 3vh);
+
+    &.show {
+        visibility: visible;
+    }
+
+    button {
+        margin: 4% 5%;
+        height: calc(0.08*$body_height);
+        width: calc(0.15*$body_width);
+        border: 1px solid black;
+        border-radius: 10%;
+        background-color: lightslategrey;
+        font-size: inherit;
+        cursor: pointer;
+
+        &.troef-symbol {
+            font-size: xxx-large;
+        }
+    }
+}
+
+div.pass-message {
+    position: absolute;
+//    z-index: 53;
+    width: inherit;
+    text-align: center;
+    color: white;
+    font-size: larger;
+}
+
 div.score-board {
     position: absolute;
     z-index: 51;
     top: calc($body_height/40);
-    left: calc(0.8*$body_width);
+    left: calc(0.75*$body_width);
     height: calc(0.3*$body_height);
-    width: calc($body_width/7);
+    width: calc(0.17*$body_width);
     background-color: darkseagreen;
     border-radius: 3%;
     padding: 1%;
@@ -257,12 +301,12 @@ div.score-board {
 }
 
 div.score-popup {
-    visibility: hidden;
     position: absolute;
+    visibility: hidden;
     z-index: 52;
     top: calc(0.65*$body_height);
-    left: calc(0.75*$body_width);
-    height: calc(0.1*$body_height);
+    left: calc(0.7*$body_width);
+    height: calc(0.15*$body_height);
     width: calc(0.25*$body_width);
     background-color: palegreen;
     border-radius: 3%;
@@ -272,5 +316,38 @@ div.score-popup {
     &.show {
         visibility: visible;
     }
+}
 
+div.error-popup {
+    position: absolute;
+    visibility: hidden;
+    z-index: 52;
+    top: calc(0.45*$body_height);
+    left: calc(0.3*$body_width);
+    height: calc(0.3*$body_height);
+    width: calc(0.5*$body_width);
+    background-color: orange;
+    color: black;
+    border: red 0.5em double;
+    border-radius: 3%;
+    text-align: center;
+    font-size: clamp(1px, 1.5vw, 2vh);
+
+    span {
+        font-weight: bold;
+    }
+
+    &.show {
+        visibility: visible;
+    }
+
+    button {
+        height: calc(0.08*$body_height);
+        width: calc(0.3*$body_width);
+        border: 1px solid black;
+        border-radius: 5px;
+        background-color: lightslategrey;
+        font-size: inherit;
+        cursor: pointer;
+    }
 }
