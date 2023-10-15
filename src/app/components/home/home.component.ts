@@ -14,6 +14,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   roundPlayer: number = 2;
   battlePlayer: number = this.roundPlayer;
   numberOfPlayed: number = -2;
+  playingPlayer: number = -1;
 
   cards: Card[] = [];
   cardsOfPlayers: Card[][] = [];
@@ -147,7 +148,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.cardsOfPlayers[playerNr].sort((card1, card2) => this.sortCardsForPlayer(card1, card2));
     }
     this.resizeLayout();
-    this.aksPlayOrPass();
+    this.askPlayOrPassToPlayer(this.roundPlayer % 4);
   }
 
   private sortCardsForPlayer(card1: Card, card2: Card): number {
@@ -198,54 +199,70 @@ export class HomeComponent implements OnInit, AfterViewInit {
     })
   }
 
-  private aksPlayOrPass() {
-    let playerNr:number = this.roundPlayer + 1;
-    while (playerNr % 4 !== 2) {
-      setTimeout((nr) => {
-        this.playersPlay[nr % 4] = this.cardsOfPlayers[nr % 4].filter((card:Card) => card.suitNr === this.trumpSuitNr).length > 2;
-      }, playerNr * 1000, playerNr);
-      playerNr++;
+  private askPlayOrPassToPlayer(playerNr: number) {
+    if (playerNr % 4 === this.roundPlayer && this.playersPlay[playerNr] === false) { // Watch out: playerPlay really has to be false, not undefined!
+      // Everyone passes
+      if (playerNr === 2) {
+        this.numberOfPlayed = -3; // Ask player South for another trump.
+        return;
+      }
+      this.trumpSuitNr = (this.trumpSuitNr + 1 + Math.floor(Math.random() * 3)) % 4;
+      this.trumpSymbol = SUIT[this.trumpSuitNr].symbol;
+      this.cardsOfPlayers[2].sort((card1, card2) => this.sortCardsForPlayer(card1, card2));
+      this.playersPlay[playerNr] = true;
+      this.playingPlayer = playerNr;
+      setTimeout(() => {
+        this.playersPlay = new Array(4).fill(undefined);
+        this.numberOfPlayed = 0;
+        this.nextTurn();
+      }, 2000)
+      return;
     }
-    setTimeout(() => {
-      this.numberOfPlayed = -1;
-    }, playerNr * 1000);
-  }
-
-  acceptTrump(play: boolean) {
-    this.playersPlay[2] = play;
-    let playerNr:number = 3;
-    while (playerNr % 4 !== (this.roundPlayer + 1) % 4) {
-      setTimeout((nr) => {
-        this.playersPlay[nr % 4] = this.cardsOfPlayers[nr % 4].filter((card:Card) => card.suitNr === this.trumpSuitNr).length > 2;
-      }, playerNr * 1000, playerNr);
-      playerNr++;
+    if (playerNr === 2) {
+      this.numberOfPlayed = -1; // Ask South to play or pass.
+      return;
     }
-    setTimeout(() => {
-      if (!this.playersPlay.some(playerPlay => playerPlay)) {
-        if (this.roundPlayer == 2) {
-          this.numberOfPlayed = -3;
-        } else {
-          this.trumpSuitNr = (this.trumpSuitNr + 1 + Math.floor(Math.random() * 3)) % 4;
-          this.trumpSymbol = SUIT[this.trumpSuitNr].symbol;
-          this.playersPlay = new Array(4).fill(undefined);
-          this.cardsOfPlayers[2].sort((card1, card2) => this.sortCardsForPlayer(card1, card2));
-          this.numberOfPlayed = 0;
-          this.nextTurn();
-        }
-      } else {
+    this.playersPlay[playerNr] = this.cardsOfPlayers[playerNr].filter((card:Card) => card.suitNr === this.trumpSuitNr).length > 2;
+    if (this.playersPlay[playerNr]) {
+      // This player wants to play, so no need to ask others, battle can start.
+      this.playingPlayer = playerNr;
+      setTimeout(() => {
         this.numberOfPlayed = 0;
         if (this.battlePlayer !== 2) {
           this.nextTurn();
         }
+      }, 3000)
+    } else {
+      // So far, every player passes,  so continue with asking.
+      setTimeout(() => {
+        this.askPlayOrPassToPlayer((playerNr + 1) % 4);
+      }, 1000)
+    }
+  }
+
+  acceptTrump(play: boolean) {
+    this.playersPlay[2] = play;
+    if (play) { // South wants to play so let's start the battle
+      this.playingPlayer = 2;
+      this.numberOfPlayed = 0;
+      if (this.roundPlayer !== 2) {
+        this.nextTurn();
+      } else {
+        this.battlePlayer = 2;
       }
-    }, playerNr * 1000 + 100)
-    this.numberOfPlayed = -2;
+    } else { // South doesn't want to play so ask others.
+      this.numberOfPlayed = -2;
+      setTimeout(() => {
+        this.askPlayOrPassToPlayer(3);
+      }, 1000)
+    }
   }
 
   selectAnotherTrump(trumpNr: number) {
     this.trumpSuitNr = trumpNr;
     this.trumpSymbol = SUIT[trumpNr].symbol;
     this.cardsOfPlayers[2].sort((card1, card2) => this.sortCardsForPlayer(card1, card2));
+    this.playingPlayer = 2;
     this.numberOfPlayed = 0;
   }
 
@@ -311,8 +328,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
         if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.suitNr === this.trumpSuitNr && card.value > highestTroefScore)) {
           return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.suitNr === this.trumpSuitNr && card.value > highestTroefScore);
         } else {
-          // If not, all other cards (except trump) are allowed.
-          return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.suitNr !== this.trumpSuitNr);
+          // So no trump-cards with higher value present, does player have other cards than trump?
+          if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.suitNr !== this.trumpSuitNr)) {
+            // Only other cards (except trump) are allowed.
+            return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.suitNr !== this.trumpSuitNr);
+          } // else, all cards, which are only trump-cards with lover value, are allowed.
         }
       }
     }
@@ -526,6 +546,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
             } else {
               this.roundPlayer = (this.roundPlayer + 1) % 4;
               this.battlePlayer = this.roundPlayer;
+              this.playingPlayer = -1;
               this.round++;
               this.trumpSuitNr = Math.floor(Math.random() * 4);
               this.trumpSymbol = SUIT[this.trumpSuitNr].symbol;

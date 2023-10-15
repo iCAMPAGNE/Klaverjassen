@@ -16,7 +16,7 @@
     </div>
 
     <div class="choose-another-trump" [ngClass]="{'show': numberOfPlayed == -3}">
-        <p>Kies een andere troef dan {{trumpSuitNr}}</p>
+        <span>Kies een andere troef dan {{trumpSymbol}}</span>
         <div>
             <button *ngFor="let trumpNr of [1,2,3]" (click)="selectAnotherTrump((trumpNr + trumpSuitNr) % 4)"  class="troef-symbol">
                 {{SUITS[(trumpNr + trumpSuitNr) % 4].symbol}} {{(trumpNr + trumpSuitNr) % 4}}
@@ -34,6 +34,7 @@
     <div class="score-board">
         <div>Ronde {{round}} van 16</div>
         <div>Rondespeler: {{PlayerNames[roundPlayer]}}</div>
+        <div [ngClass]="{'hidden': playingPlayer < 0}">Speler {{PlayerNames[playingPlayer]}} speelt.</div>
         <table>
             <col>
             <col>
@@ -101,8 +102,8 @@
             <div class="center-area">
                 <div class="card-format north-play">
                                     <div class="card-placeholder north">
-                                        <div *ngIf="numberOfPlayed < 0 && playersPlay[0] != undefined" class="pass-message">Ik
-                                            {{playersPlay[0] ? 'speel' : 'pas'}}
+                                        <div *ngIf="numberOfPlayed < 0 && playersPlay[0] != undefined" class="pass-message">
+                                            Ik {{playersPlay[0] ? 'speel' : 'pas'}}
                                         </div>
                                         <div class="way" [ngClass]="{'playing': battlePlayer === 0}">N</div>
                                     </div>

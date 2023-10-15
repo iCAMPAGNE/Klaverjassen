@@ -271,7 +271,7 @@ div.score-board {
     z-index: 51;
     top: calc($body_height/40);
     left: calc(0.75*$body_width);
-    height: calc(0.3*$body_height);
+    height: calc(0.35*$body_height);
     width: calc(0.17*$body_width);
     background-color: darkseagreen;
     border-radius: 3%;
@@ -281,6 +281,10 @@ div.score-board {
     > .round-nr {
         width: 100%;
         text-align: center;
+    }
+
+    > .hidden {
+        visibility: hidden;
     }
 
     > table {
