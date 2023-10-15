@@ -447,8 +447,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     const consecutive = this.cards.filter((card: Card) => card.moving).sort((a,b) => a.nr < b.nr ? -1:1)
         .reduce((result, element) => [element.suitNr,element.nr,element.suitNr === result[0] && element.nr == result[1] + 1 ? result[2] + 1 : result[2] == 1 ? 0 : result[2]], [0,0,0]);
     this.kudoScore += consecutive[2] == 3 ? 50 : consecutive[2] == 2 ? 20 : 0;
-    if (this.cardsOfPlayers[this.battlePlayer].find(card => card.moving)?.suitNr === this.trumpSuitNr && this.kudoScore > 0 && this.cards.filter((card: Card) => card.moving).some(card => card.nr === 12) && this.cards.filter((card: Card) => card.moving).some(card => card.nr === 13)) {
-      this.kudoScore += 20;
+    if (this.kudoScore > 0 && this.cards.filter((card: Card) => card.moving && card.suitNr == this.trumpSuitNr).reduce((stuk: number, card) => stuk + ([12,13].includes(card.nr) ? 1 : 0), 0) == 2) {
+      this.kudoScore += 20; // "stuk"
     }
 
     setTimeout(() => {
