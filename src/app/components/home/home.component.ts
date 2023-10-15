@@ -353,76 +353,70 @@ export class HomeComponent implements OnInit, AfterViewInit {
   nextTurn() {
     switch (this.battlePlayer) {
       case 0:
+        const card0: Card = this.allowedCardsForPlayerInCurrentBattle(0)[0];
+        if (card0) {
+          card0.x = this.offsetNorthX;
+          card0.y = this.offsetNorthY;
+          card0.moving = true;
+          card0.used = true;
+          this.calculatePoints(card0);
+          this.cardNorth = card0;
+        } else {
+          console.error('Player 0 has no allowed card in ', this.cardsOfPlayers[0]);
+        }
         setTimeout(() => {
-          const card: Card = this.allowedCardsForPlayerInCurrentBattle(0)[0];
-          if (card) {
-            card.x = this.offsetNorthX;
-            card.y = this.offsetNorthY;
-            card.moving = true;
-            card.used = true;
-            this.calculatePoints(card);
-            this.cardNorth = card;
+          this.cardsOfPlayers[0].sort((card:Card) => card.used ? -1 : 1);
+          this.nextPlayer();
+          if (this.numberOfPlayed === 4) {
+            this.endOfBattle();
           } else {
-            console.error('Player 0 has no allowed card in ', this.cardsOfPlayers[0]);
+            this.nextTurn();
           }
-          setTimeout(() => {
-            this.cardsOfPlayers[0].sort((card1:Card) => card1.used ? -1 : 1);
-            this.nextPlayer();
-            if (this.numberOfPlayed === 4) {
-              this.endOfBattle();
-            } else {
-              this.nextTurn();
-            }
-          }, 1000)
-        }, 1000);
+        }, 1000)
         break;
       case 1:
+        const card1: Card = this.allowedCardsForPlayerInCurrentBattle(1)[0];
+        if (card1) {
+          card1.x = this.offsetEastX;
+          card1.y = this.offsetEastY;
+          card1.moving = true;
+          card1.used = true;
+          this.calculatePoints(card1);
+          this.cardEast = card1;
+        } else {
+          console.error('Player 1 has no allowed card in ', this.cardsOfPlayers[1]);
+        }
         setTimeout(() => {
-          const card: Card = this.allowedCardsForPlayerInCurrentBattle(1)[0];
-          if (card) {
-            card.x = this.offsetEastX;
-            card.y = this.offsetEastY;
-            card.moving = true;
-            card.used = true;
-            this.calculatePoints(card);
-            this.cardEast = card;
+          this.cardsOfPlayers[1].sort((card:Card) => card.used ? -1 : 1);
+          this.nextPlayer();
+          if (this.numberOfPlayed === 4) {
+            this.endOfBattle();
           } else {
-            console.error('Player 1 has no allowed card in ', this.cardsOfPlayers[1]);
+            // enable players cards
           }
-          setTimeout(() => {
-            this.cardsOfPlayers[1].sort((card1:Card) => card1.used ? -1 : 1);
-            this.nextPlayer();
-            if (this.numberOfPlayed === 4) {
-              this.endOfBattle();
-            } else {
-              // enable players cards
-            }
-          }, 1000)
-        }, 1000);
+        }, 1000)
         break;
       case 3:
+        const card3: Card = this.allowedCardsForPlayerInCurrentBattle(3)[0];
+        if (card3) {
+          card3.x = this.offsetWestX;
+          card3.y = this.offsetWestY;
+          card3.used = true;
+          card3.moving = true;
+          this.calculatePoints(card3);
+          this.cardWest = card3;
+        } else {
+          console.error('Player 3 has no allowed card in ', this.cardsOfPlayers[3]);
+        }
         setTimeout(() => {
-          const card: Card = this.allowedCardsForPlayerInCurrentBattle(3)[0];
-          if (card) {
-            card.x = this.offsetWestX;
-            card.y = this.offsetWestY;
-            card.used = true;
-            card.moving = true;
-            this.calculatePoints(card);
-            this.cardWest = card;
+          this.cardsOfPlayers[3].sort((card:Card) => card.used ? -1 : 1);
+          this.nextPlayer();
+          if (this.numberOfPlayed === 4) {
+            this.endOfBattle();
           } else {
-            console.error('Player 3 has no allowed card in ', this.cardsOfPlayers[3]);
+            this.nextTurn();
           }
-          setTimeout(() => {
-            this.cardsOfPlayers[3].sort((card1:Card) => card1.used ? -1 : 1);
-            this.nextPlayer();
-            if (this.numberOfPlayed === 4) {
-              this.endOfBattle();
-            } else {
-              this.nextTurn();
-            }
-          }, 1000)
-        }, 1000);
+        }, 1000)
         break;
     }
   }
@@ -553,12 +547,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
               this.playersPlay = new Array(4).fill(undefined);
               this.startRound();
             }
-          }, 2000);
-        }, 10000);
+          }, 200);
+        }, 4000);
       } else {
-        this.nextTurn();
+        setTimeout(() => { // Wait until cards are removed from work-area.
+          this.nextTurn();
+        }, 800)
       }
-    }, 10000);
+    }, 3000);
   }
 
   startNewGame() {
