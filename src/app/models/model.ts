@@ -1,4 +1,3 @@
-
 export interface Card {
     id: number;
     nr: number;
@@ -11,13 +10,14 @@ export interface Card {
     value: number;
 }
 
-export interface Pile {
-    cards: Card[];
-}
-
 export const SUIT = [
     { name: 'clubs', symbol: '♧'},
     { name: 'diamonds', symbol: '♦'},
     { name: 'spades', symbol: '♤'},
     { name: 'hearts', symbol: '♥'}
 ]
+
+export class Offset {
+    x: number = 0;
+    y: number = 0;
+}

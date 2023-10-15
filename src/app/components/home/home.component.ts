@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, ElementRef, HostListener, OnInit} from '@angular/core';
-import {Card, SUIT} from "../../models/model";
+import {Card, Offset, SUIT} from "../../models/model";
 
 @Component({
   selector: 'app-home',
@@ -24,18 +24,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   playersPlay: boolean[] = new Array(4).fill(undefined);
 
-  offsetSouthX: number = 0;
+  offset: Offset[] = [0,1,2,3].map(() => new Offset());
   offsetSouthXdiff: number = 0;
-  offsetSouthY: number = 0;
-
-  offsetNorthX: number = 0;
-  offsetNorthY: number = 0;
-
-  offsetEastX: number = 0;
-  offsetEastY: number = 0;
-
-  offsetWestX: number = 0;
-  offsetWestY: number = 0;
 
   placeholderNorthRect: any;
   placeholderEastRect: any;
@@ -43,10 +33,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   placeholderWestRect: any;
   placeholderPlayerRect: any;
 
-  cardNorth?: Card;
-  cardEast?: Card;
-  cardSouth?: Card;
-  cardWest?: Card;
+  movingCards: Card[] = new Array(4);
 
   northSouthRoundScore: number = 0;
   eastWestRoundScore: number = 0;
@@ -170,31 +157,31 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.placeholderSouthRect = this.elementRef.nativeElement.querySelector('.placeholder-s > .card-canvas:first-child').getBoundingClientRect();
       this.placeholderWestRect =  this.elementRef.nativeElement.querySelector('.placeholder-w').getBoundingClientRect();
 
-      this.offsetNorthX = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().left - this.placeholderNorthRect.left;
-      this.offsetNorthY = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().top - this.placeholderNorthRect.top;
+      this.offset[0].x = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().left - this.placeholderNorthRect.left;
+      this.offset[0].y = this.elementRef.nativeElement.querySelector('.north').getBoundingClientRect().top - this.placeholderNorthRect.top;
 
-      this.offsetEastX = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().left - this.placeholderEastRect.left;
-      this.offsetEastY = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().top - this.placeholderEastRect.top;
+      this.offset[1].x = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().left - this.placeholderEastRect.left;
+      this.offset[1].y = this.elementRef.nativeElement.querySelector('.east').getBoundingClientRect().top - this.placeholderEastRect.top;
 
-      this.offsetSouthX =  placeholderSouth.left - this.placeholderPlayerRect.left;
+      this.offset[2].x =  placeholderSouth.left - this.placeholderPlayerRect.left;
       this.offsetSouthXdiff = secondSouthCard.left - this.placeholderPlayerRect.left;
-      this.offsetSouthY = placeholderSouth.top - placeholderS.top;
+      this.offset[2].y = placeholderSouth.top - placeholderS.top;
 
-      this.offsetWestX = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().left - this.placeholderWestRect.left;
-      this.offsetWestY = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().top - this.placeholderWestRect.top;
+      this.offset[3].x = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().left - this.placeholderWestRect.left;
+      this.offset[3].y = this.elementRef.nativeElement.querySelector('.west').getBoundingClientRect().top - this.placeholderWestRect.top;
 
-      if (this.cardNorth) {
-        this.cardNorth.y = this.offsetNorthY;
+      if (this.movingCards[0]) {
+        this.movingCards[0].y = this.offset[0].y;
       }
-      if (this.cardEast) {
-        this.cardEast.x = this.offsetEastX;
+      if (this.movingCards[1]) {
+        this.movingCards[1].x = this.offset[1].x;
       }
-      if (this.cardWest) {
-        this.cardWest.x = this.offsetWestX;
+      if (this.movingCards[3]) {
+        this.movingCards[3].x = this.offset[3].x;
       }
-      if (this.cardSouth) {
-        this.cardSouth.x = this.offsetSouthX;
-        this.cardSouth.y = this.offsetSouthY;
+      if (this.movingCards[2]) {
+        this.movingCards[2].x = this.offset[2].x;
+        this.movingCards[2].y = this.offset[2].y;
       }
     })
   }
@@ -267,12 +254,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   cardClick(card: Card): boolean {
-    card.x = this.offsetSouthX;
-    card.y = this.offsetSouthY;
+    card.x = this.offset[2].x;
+    card.y = this.offset[2].y;
     card.used = true;
     card.moving = true;
     this.calculatePoints(card);
-    this.cardSouth = card;
+    this.movingCards[2] = card;
     setTimeout(() => {
       this.nextPlayer();
       if (this.numberOfPlayed === 4) {
@@ -346,79 +333,33 @@ export class HomeComponent implements OnInit, AfterViewInit {
     if (this.battlePlayer !== 2 || [-2,-1,4].includes(this.numberOfPlayed)) {
       return true; // Disable all cards if it's not your turn
     }
-
     return !this.allowedCardsForPlayerInCurrentBattle(2).includes(card);
   }
 
   nextTurn() {
-    switch (this.battlePlayer) {
-      case 0:
-        const card0: Card = this.allowedCardsForPlayerInCurrentBattle(0)[0];
-        if (card0) {
-          card0.x = this.offsetNorthX;
-          card0.y = this.offsetNorthY;
-          card0.moving = true;
-          card0.used = true;
-          this.calculatePoints(card0);
-          this.cardNorth = card0;
-        } else {
-          console.error('Player 0 has no allowed card in ', this.cardsOfPlayers[0]);
-        }
-        setTimeout(() => {
-          this.cardsOfPlayers[0].sort((card:Card) => card.used ? -1 : 1);
-          this.nextPlayer();
-          if (this.numberOfPlayed === 4) {
-            this.endOfBattle();
-          } else {
-            this.nextTurn();
-          }
-        }, 1000)
-        break;
-      case 1:
-        const card1: Card = this.allowedCardsForPlayerInCurrentBattle(1)[0];
-        if (card1) {
-          card1.x = this.offsetEastX;
-          card1.y = this.offsetEastY;
-          card1.moving = true;
-          card1.used = true;
-          this.calculatePoints(card1);
-          this.cardEast = card1;
-        } else {
-          console.error('Player 1 has no allowed card in ', this.cardsOfPlayers[1]);
-        }
-        setTimeout(() => {
-          this.cardsOfPlayers[1].sort((card:Card) => card.used ? -1 : 1);
-          this.nextPlayer();
-          if (this.numberOfPlayed === 4) {
-            this.endOfBattle();
-          } else {
-            // enable players cards
-          }
-        }, 1000)
-        break;
-      case 3:
-        const card3: Card = this.allowedCardsForPlayerInCurrentBattle(3)[0];
-        if (card3) {
-          card3.x = this.offsetWestX;
-          card3.y = this.offsetWestY;
-          card3.used = true;
-          card3.moving = true;
-          this.calculatePoints(card3);
-          this.cardWest = card3;
-        } else {
-          console.error('Player 3 has no allowed card in ', this.cardsOfPlayers[3]);
-        }
-        setTimeout(() => {
-          this.cardsOfPlayers[3].sort((card:Card) => card.used ? -1 : 1);
-          this.nextPlayer();
-          if (this.numberOfPlayed === 4) {
-            this.endOfBattle();
-          } else {
-            this.nextTurn();
-          }
-        }, 1000)
-        break;
+    if (this.battlePlayer === 2) {
+      return; // Skip South, that's you.
     }
+    const card: Card = this.allowedCardsForPlayerInCurrentBattle(this.battlePlayer)[0];
+    if (card) {
+      card.x = this.offset[this.battlePlayer].x;
+      card.y = this.offset[this.battlePlayer].y;
+      card.moving = true;
+      card.used = true;
+      this.calculatePoints(card);
+      this.movingCards[this.battlePlayer] = card;
+    } else {
+      console.error('Player ' + this.battlePlayer + ' has no allowed card in ', this.cardsOfPlayers[this.battlePlayer]);
+    }
+    setTimeout(() => {
+      this.cardsOfPlayers[this.battlePlayer].sort((card1:Card) => card1.used ? -1 : 1);
+      this.nextPlayer();
+      if (this.numberOfPlayed === 4) {
+        this.endOfBattle();
+      } else {
+        this.nextTurn();
+      }
+    }, 1000)
   }
 
   endOfBattle() {
@@ -453,22 +394,21 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     setTimeout(() => {
       const won = [this.placeholderNorthRect, this.placeholderEastRect, this.placeholderSouthRect, this.placeholderWestRect][winnerPlayer];
-      if (this.cardNorth && this.cardEast && this.cardEast && this.cardSouth && this.cardWest) {
-        this.cardNorth.x = won.left - this.placeholderNorthRect.left;
-        this.cardNorth.y = won.top - this.placeholderNorthRect.top;
-        this.cardEast.x = won.left - this.placeholderEastRect.left;
-        this.cardEast.y = won.top - this.placeholderEastRect.top;
-        this.cardSouth.x = won.left - this.placeholderSouthRect.left + this.offsetSouthX;
-        this.cardSouth.y = won.top - this.placeholderPlayerRect.top;
-        this.cardWest.x = won.left - this.placeholderWestRect.left;
-        this.cardWest.y = won.top - this.placeholderWestRect.top;
+      if (this.movingCards[0] && this.movingCards[1] && this.movingCards[1] && this.movingCards[2] && this.movingCards[3]) {
+        this.movingCards[0].x = won.left - this.placeholderNorthRect.left;
+        this.movingCards[0].y = won.top - this.placeholderNorthRect.top;
+        this.movingCards[1].x = won.left - this.placeholderEastRect.left;
+        this.movingCards[1].y = won.top - this.placeholderEastRect.top;
+        this.movingCards[2].x = won.left - this.placeholderSouthRect.left + this.offset[2].x;
+        this.movingCards[2].y = won.top - this.placeholderPlayerRect.top;
+        this.movingCards[3].x = won.left - this.placeholderWestRect.left;
+        this.movingCards[3].y = won.top - this.placeholderWestRect.top;
 
         setTimeout(() => {
           // Todo: https://stackoverflow.com/questions/50908130/angular-5-add-style-to-specific-element-dynamically
-          (this.elementRef.nativeElement.querySelector('#card-' + this.cardNorth?.id) as HTMLElement).style.visibility = 'hidden';
-          (this.elementRef.nativeElement.querySelector('#card-' + this.cardEast?.id) as HTMLElement).style.visibility = 'hidden';
-          (this.elementRef.nativeElement.querySelector('#card-' + this.cardSouth?.id) as HTMLElement).style.visibility = 'hidden';
-          (this.elementRef.nativeElement.querySelector('#card-' + this.cardWest?.id) as HTMLElement).style.visibility = 'hidden';
+          this.movingCards.forEach((card: Card) => {
+            (this.elementRef.nativeElement.querySelector('#card-' + card?.id) as HTMLElement).style.visibility = 'hidden';
+          });
         }, 700);
       }
       if ([0,2].includes(winnerPlayer)) {
