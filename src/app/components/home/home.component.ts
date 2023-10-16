@@ -21,6 +21,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   trumpSuitNr: number = 0;
   trumpSymbol: string = SUIT[this.trumpSuitNr].symbol;
   SUITS = SUIT;
+  valueArray: number[][] = [[0,0,0,10,2,3,4,11],[0,0,14,10,20,3,4,11]];
 
   playersPlay: boolean[] = new Array(4).fill(undefined);
 
@@ -119,7 +120,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
           suitNr: suitNr,
           moving: false,
           used: false,
-          value: 0
+          value: this.valueArray[suitNr == this.trumpSuitNr ? 1 : 0][(value || 7) - 7]
         });
         spread.push(this.cards.length - 1);
       }
@@ -248,6 +249,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   selectAnotherTrump(trumpNr: number) {
     this.trumpSuitNr = trumpNr;
     this.trumpSymbol = SUIT[trumpNr].symbol;
+    this.cards.forEach(card => this.calculateCardValue(card));
     this.cardsOfPlayers[2].sort((card1, card2) => this.sortCardsForPlayer(card1, card2));
     this.playingPlayer = 2;
     this.numberOfPlayed = 0;
@@ -258,7 +260,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
     card.y = this.offset[2].y;
     card.used = true;
     card.moving = true;
-    this.calculatePoints(card);
     this.movingCards[2] = card;
     setTimeout(() => {
       this.nextPlayer();
@@ -308,18 +309,18 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     // If player can't follow suit, try 'trump'
     if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.suitNr === this.trumpSuitNr)) {
-      // Check whether someone else already played 'troef'.
-      const highestTroefScore:number = this.cardsOfPlayers.map(cardsOfPlayer => cardsOfPlayer.find(card => card.moving && card.suitNr === this.trumpSuitNr)?.value || 0).reduce((highestScore, score) => Math.max(highestScore, score), 0);
-      if (highestTroefScore > 0) {
+      // Check whether someone else already played trump.
+      const highestTrumpScore:number = this.cardsOfPlayers.map(cardsOfPlayer => cardsOfPlayer.find(card => card.moving && card.suitNr === this.trumpSuitNr)?.value || 0).reduce((highestScore, score) => Math.max(highestScore, score), 0);
+      if (highestTrumpScore > 0) {
         // Someone played trump so check if you have trump-cards of higher value
-        if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.suitNr === this.trumpSuitNr && card.value > highestTroefScore)) {
-          return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.suitNr === this.trumpSuitNr && card.value > highestTroefScore);
+        if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.suitNr === this.trumpSuitNr && card.value > highestTrumpScore)) {
+          return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.suitNr === this.trumpSuitNr && card.value > highestTrumpScore);
         } else {
           // So no trump-cards with higher value present, does player have other cards than trump?
           if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.suitNr !== this.trumpSuitNr)) {
             // Only other cards (except trump) are allowed.
             return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.suitNr !== this.trumpSuitNr);
-          } // else, all cards, which are only trump-cards with lover value, are allowed.
+          } // else, all cards, which are only trump-cards with lower value, are allowed.
         }
       }
     }
@@ -336,17 +337,68 @@ export class HomeComponent implements OnInit, AfterViewInit {
     return !this.allowedCardsForPlayerInCurrentBattle(2).includes(card);
   }
 
+  private bestGuessCard(): Card {
+    const matePlayerNr = (this.battlePlayer + 2) % 4;
+    const opponent1 = (this.battlePlayer + 1) % 4;
+    const opponent2 = (this.battlePlayer + 3) % 4;
+//    console.log(this.battlePlayer, matePlayerNr, opponent1, opponent2);
+    const allowedCards: Card[] = this.allowedCardsForPlayerInCurrentBattle(this.battlePlayer);
+    if (allowedCards.length === 0) {
+      console.error('No allowedCards for player ' + this.battlePlayer);
+    }
+    if (allowedCards.length === 1) {
+      return allowedCards[0];
+    }
+    const maxValue: number = allowedCards.reduce((maxVal: number, card: Card) => Math.max(maxVal, card.value), 0);
+    const cardWithMaxValue: Card = allowedCards.reduce((cardWithMaxValue: Card, card: Card) => card.value > cardWithMaxValue.value ? card : cardWithMaxValue);
+
+    // Determine playerNr and card of first player in this battle.
+    let firstPlayer: number = this.battlePlayer;
+    let firstCardOfThisBattle:Card | undefined;
+    for (; ++firstPlayer < this.battlePlayer + 4 && firstCardOfThisBattle == undefined;) {
+      firstCardOfThisBattle = this.cardsOfPlayers[firstPlayer % 4].find(card => card.moving);
+    }
+    firstPlayer--;
+    if (firstCardOfThisBattle) {
+      let highestValueOfOpponent: number = 0;
+      if (firstPlayer === matePlayerNr) {
+        const cardOfOpponent: Card | undefined = this.cardsOfPlayers[(firstPlayer + 1) % 4].find(card => card.moving);
+        if (cardOfOpponent &&
+            (cardOfOpponent.suitNr === firstCardOfThisBattle.suitNr && cardOfOpponent.value > firstCardOfThisBattle.value)
+            || (cardOfOpponent?.suitNr === this.trumpSuitNr)
+        ) {
+          highestValueOfOpponent = cardOfOpponent.value;
+        }
+      } else {
+        // There is a first card and it's from an opponent.
+        const cardOfOtherOpponent: Card | undefined = this.cardsOfPlayers[(firstPlayer + 2) % 4].find(card => card.moving);
+        highestValueOfOpponent = Math.max(firstCardOfThisBattle.value, cardOfOtherOpponent?.value || 0);
+      }
+
+      // Let's see if I have a card with higher value
+      if (allowedCards.filter(card => card.suitNr === firstCardOfThisBattle?.suitNr || card.suitNr === this.trumpSuitNr).reduce((maxValue, card) => Math.max(maxValue, card.value), 0) > highestValueOfOpponent) {
+        console.log('Player ' + this.battlePlayer + ' has card(s) with higher value, so play the highest one:', allowedCards.sort((a, b) => a.value >= b.value ? -1 : 1)[0], ' of cards', allowedCards);
+        return allowedCards.sort((a, b) => a.value >= b.value ? -1 : 1)[0];
+      } else {
+        // If not, play the card with the lowest level
+        console.log('Player ' + this.battlePlayer + ' doesn\'t have card(s) with higher value, so play the lowest one:', allowedCards.sort((a, b) => a.value <= b.value ? -1 : 1)[0], ' of cards', allowedCards);
+        return allowedCards.sort((a, b) => a.value <= b.value ? -1 : 1)[0];
+      }
+    }
+    return allowedCards[0];
+  }
+
   nextTurn() {
     if (this.battlePlayer === 2) {
       return; // Skip South, that's you.
     }
-    const card: Card = this.allowedCardsForPlayerInCurrentBattle(this.battlePlayer)[0];
+
+    let card: Card = this.bestGuessCard();
     if (card) {
       card.x = this.offset[this.battlePlayer].x;
       card.y = this.offset[this.battlePlayer].y;
       card.moving = true;
       card.used = true;
-      this.calculatePoints(card);
       this.movingCards[this.battlePlayer] = card;
     } else {
       console.error('Player ' + this.battlePlayer + ' has no allowed card in ', this.cardsOfPlayers[this.battlePlayer]);
@@ -377,7 +429,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       winnerPlayer = playerWithHighestSuit[1];
     }
     this.battleWinner = this.PlayerNames[winnerPlayer];
-    let totalScore = this.cards.filter((card: Card) => card.moving).map(card => this.calculatePoints(card).value).reduce((totalScore: number, cardScore) => totalScore + cardScore);
+    let totalScore = this.cards.filter((card: Card) => card.moving).map(card => card.value).reduce((totalScore: number, cardScore) => totalScore + cardScore);
     const lastBattleOfRound: boolean = !this.cardsOfPlayers[0].some(card => !card.used);
     if (lastBattleOfRound) {
       totalScore += 10;
@@ -513,9 +565,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.numberOfPlayed++;
   }
 
-  private calculatePoints(card: Card): Card {
-    let pointsArray: number[][] = [[0,0,0,10,2,3,4,11],[0,0,14,10,20,3,4,11]];
-    card.value = pointsArray[card?.suitNr == this.trumpSuitNr ? 1 : 0][(card?.nr || 7) - 7];
+  private calculateCardValue(card: Card): Card {
+    card.value = this.valueArray[card?.suitNr == this.trumpSuitNr ? 1 : 0][(card?.nr || 7) - 7];
     return card;
   }
 
