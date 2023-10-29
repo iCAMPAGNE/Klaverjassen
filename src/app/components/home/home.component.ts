@@ -196,6 +196,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
       this.trumpSuitNr = (this.trumpSuitNr + 1 + Math.floor(Math.random() * 3)) % 4;
       this.trumpSymbol = SUIT[this.trumpSuitNr].symbol;
+      this.cards.forEach(card => this.calculateCardValue(card));
       this.cardsOfPlayers[2].sort((card1, card2) => this.sortCardsForPlayer(card1, card2));
       this.playersPlay[playerNr] = true;
       this.playingPlayer = playerNr;
@@ -360,32 +361,96 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
     firstPlayer--;
     if (firstCardOfThisBattle) {
-      let highestValueOfOpponent: number = 0;
-      if (firstPlayer === matePlayerNr) {
-        const cardOfOpponent: Card | undefined = this.cardsOfPlayers[(firstPlayer + 1) % 4].find(card => card.moving);
-        if (cardOfOpponent &&
-            (cardOfOpponent.suitNr === firstCardOfThisBattle.suitNr && cardOfOpponent.value > firstCardOfThisBattle.value)
-            || (cardOfOpponent?.suitNr === this.trumpSuitNr)
-        ) {
-          highestValueOfOpponent = cardOfOpponent.value;
+      const cardOfMate: Card | undefined = this.cardsOfPlayers[(this.battlePlayer + 2) % 4].find(card => card.moving);
+      const cardOfOtherOpponent: Card | undefined = this.cardsOfPlayers[(firstPlayer + 2) % 4].find(card => card.moving);
+      if (allowedCards.some(card => card.suitNr === firstCardOfThisBattle?.suitNr)) {
+        let highestValueOfOpponent: number = 0;
+        if (firstPlayer === matePlayerNr) {
+          const cardOfOpponent: Card | undefined = this.cardsOfPlayers[(firstPlayer + 1) % 4].find(card => card.moving);
+          if (cardOfOpponent && cardOfOpponent.suitNr === firstCardOfThisBattle.suitNr && cardOfOpponent.value > firstCardOfThisBattle.value) {
+            highestValueOfOpponent = cardOfOpponent.value;
+          } else {
+            if (cardOfOpponent?.suitNr === this.trumpSuitNr) {
+              // I don't have trump, so I can't beat opponent.
+              return allowedCards.sort((a, b) => a.value <= b.value ? -1 : 1)[0]; // lowest card
+            }
+          }
+        } else {
+          // There is a first card and it's from an opponent.
+          if (cardOfOtherOpponent?.suitNr === this.trumpSuitNr) {
+            // I don't have trump, so I can't beat other opponent.
+            return allowedCards.sort((a, b) => a.value <= b.value ? -1 : 1)[0]; // lowest card
+          }
+          highestValueOfOpponent = Math.max(firstCardOfThisBattle.value, cardOfOtherOpponent?.value || 0);
+        }
+
+        // Let's see if I have a card with higher value
+        if (allowedCards.filter(card => card.suitNr === firstCardOfThisBattle?.suitNr || card.suitNr === this.trumpSuitNr).reduce((maxValue, card) => Math.max(maxValue, card.value), 0) > highestValueOfOpponent) {
+          console.log(' Player ' + this.battlePlayer + ' has card(s) with higher value, so play the highest one:', allowedCards.sort((a, b) => a.value >= b.value ? -1 : 1)[0], ' of cards', allowedCards);
+          return allowedCards.sort((a, b) => a.value >= b.value ? -1 : 1)[0];
+        } else {
+          // If not, play the card with the lowest level
+          console.log(' Player ' + this.battlePlayer + ' doesn\'t have card(s) with higher value, so play the lowest one:', allowedCards.sort((a, b) => a.value <= b.value ? -1 : 1)[0], ' of cards', allowedCards);
+          return allowedCards.sort((a, b) => a.value <= b.value ? -1 : 1)[0];
         }
       } else {
-        // There is a first card and it's from an opponent.
-        const cardOfOtherOpponent: Card | undefined = this.cardsOfPlayers[(firstPlayer + 2) % 4].find(card => card.moving);
-        highestValueOfOpponent = Math.max(firstCardOfThisBattle.value, cardOfOtherOpponent?.value || 0);
-      }
+        console.log(' Player ' + this.battlePlayer + ' can\'t meet suit.');
+        // Do you have trump and is it needed to use one?
+        if (firstCardOfThisBattle.suitNr !== this.trumpSuitNr) {
+          if (cardOfOtherOpponent && cardOfOtherOpponent.suitNr === this.trumpSuitNr) {
+            if (allowedCards.filter(card => card.suitNr === this.trumpSuitNr).some(card => card.value > cardOfOtherOpponent.value)) {
+              // Answer with the highest  trump card
+              return allowedCards.filter(card => card.suitNr === this.trumpSuitNr).sort((a, b) => a.value >= b.value ? -1 : 1)[0];
+            }
+          } else {
+            // You can use your lowest trump card to win this battle if you have.
+            if (allowedCards.filter(card => card.suitNr === this.trumpSuitNr).length > 0) {
+              return allowedCards.filter(card => card.suitNr === this.trumpSuitNr).sort((a, b) => a.value <= b.value ? -1 : 1)[0];
+            }
+          }
+        }
 
-      // Let's see if I have a card with higher value
-      if (allowedCards.filter(card => card.suitNr === firstCardOfThisBattle?.suitNr || card.suitNr === this.trumpSuitNr).reduce((maxValue, card) => Math.max(maxValue, card.value), 0) > highestValueOfOpponent) {
-        console.log('Player ' + this.battlePlayer + ' has card(s) with higher value, so play the highest one:', allowedCards.sort((a, b) => a.value >= b.value ? -1 : 1)[0], ' of cards', allowedCards);
-        return allowedCards.sort((a, b) => a.value >= b.value ? -1 : 1)[0];
-      } else {
-        // If not, play the card with the lowest level
-        console.log('Player ' + this.battlePlayer + ' doesn\'t have card(s) with higher value, so play the lowest one:', allowedCards.sort((a, b) => a.value <= b.value ? -1 : 1)[0], ' of cards', allowedCards);
-        return allowedCards.sort((a, b) => a.value <= b.value ? -1 : 1)[0];
+        // First check if Mate will win this battle so that you can sign
+        if (cardOfOtherOpponent) { // All other parties have played
+          if (firstCardOfThisBattle.suitNr !== this.trumpSuitNr && cardOfOtherOpponent.suitNr !== this.trumpSuitNr && (cardOfMate?.suitNr === this.trumpSuitNr || (cardOfMate?.suitNr === firstCardOfThisBattle.suitNr && Math.max(firstCardOfThisBattle.value, cardOfOtherOpponent.value) >= (cardOfMate?.value || 0)))) {
+            // Let's see if you can give a signal to your mate.
+            for (let suitNr = 0; suitNr < 4; suitNr++) {
+              if (suitNr === this.trumpSuitNr) continue;
+              const ace:[number,Card] = this.cardsOfPlayers[this.battlePlayer].filter(card => !card.used && card.suitNr === suitNr).reduce((found, card:Card) => [10,14].includes(card.nr) ? [<number>found[0]+1,card]:[found[0],<Card>found[1]], [0,this.cards[0]]);
+              console.log(ace);
+              if (ace[0] === 2) {
+                console.log(' Player ' + this.battlePlayer + ' has ace AND ten for ' + SUIT[suitNr].name  + ' , so return ace.');
+                return ace[1];
+              }
+            }
+            console.log('checking ace');
+            for (let suitNr = 0; suitNr < 4; suitNr++) {
+              if (suitNr === this.trumpSuitNr) continue;
+              if (this.cardsOfPlayers[this.battlePlayer].some(card => !card.used && card.suitNr === suitNr && card.nr === 14)) {
+                const card:Card | undefined = this.cardsOfPlayers[this.battlePlayer].find(card => !card.used && card.suitNr === suitNr && card.value === 0);
+                if (card) {
+                  console.log(' Player ' + this.battlePlayer + ' signals having an ace wit card ', card);
+                  return card;
+                }
+              }
+            }
+            console.log('checking ten');
+            for (let suitNr = 0; suitNr < 4; suitNr++) {
+              if (suitNr === this.trumpSuitNr) continue;
+              if (this.cardsOfPlayers[this.battlePlayer].some(card => !card.used && card.suitNr === suitNr && card.nr === 10)) {
+                continue;
+              }
+              const card:Card | undefined = this.cardsOfPlayers[this.battlePlayer].find(card => !card.used && card.suitNr === suitNr && [11,12,13].includes(card.value));
+              if (card) {
+                console.log(' Player ' + this.battlePlayer + ' signals having no good cards for suit ', SUIT[suitNr].name);
+                return card;
+              }
+            }
+          }
+        }
       }
     }
-    return allowedCards[0];
+    return allowedCards.sort((a, b) => a.value <= b.value ? -1 : 1)[0];
   }
 
   nextTurn() {
