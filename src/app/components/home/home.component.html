@@ -1,13 +1,13 @@
 <div id="main" class="main">
     <button *ngIf="showingFullScreen()" class="full-screen-button" (click)="openFullscreen()">Klik hier voor volledig scherm</button>
 
-    <div class="error-popup" [ngClass]="{'show': errorMessage}">
+    <div class="error-popup" *ngIf="errorMessage">
         <span>Fout melding. Er iets mis gegaan. Waarschuw direct de programmeur.</span>
         <p [innerHTML]="errorMessage"></p>
         <button (click)="closeErrorPopup()">Sluit melding</button>
     </div>
 
-    <div class="confirm-trump" [ngClass]="{'show': numberOfPlayed == -1}">
+    <div class="confirm-trump" *ngIf="numberOfPlayed == -1">
         <span>Wil je {{trumpSymbol}} spelen?</span>
         <div>
             <button (click)="acceptTrump(false)">Nee, ik pas</button>
@@ -15,16 +15,17 @@
         </div>
     </div>
 
-    <div class="choose-another-trump" [ngClass]="{'show': numberOfPlayed == -3}">
+    <div class="choose-another-trump" *ngIf="showChooseAnotherTrumpPopup">
         <span>Kies een andere troef dan {{trumpSymbol}}</span>
         <div>
             <button *ngFor="let trumpNr of [1,2,3]" (click)="selectAnotherTrump((trumpNr + trumpSuitNr) % 4)"  class="troef-symbol">
-                {{SUITS[(trumpNr + trumpSuitNr) % 4].symbol}} {{(trumpNr + trumpSuitNr) % 4}}
+                {{SUITS[(trumpNr + trumpSuitNr) % 4].symbol}}
             </button>
+            <button (click)="reshuffleCards()">Opnieuw delen</button>
         </div>
     </div>
 
-    <div class="confirm-trump" [ngClass]="{'show': gameOver}">
+    <div class="confirm-trump" *ngIf="gameOver">
         <span>Einde spel. {{northSouthTotalScore > eastWestTotalScore ? 'Noord/Zuid' : 'Oost/West'}} heeft gewonnen!</span>
         <div>
             <button (click)="startNewGame()">Nieuw spel</button>
@@ -48,6 +49,11 @@
                 <th></th>
                 <th>N/Z</th>
                 <th>O/W</th>
+            </tr>
+            <tr>
+                <td>battle won</td>
+                <td>{{northSouthBattlesWon}}</td>
+                <td>{{eastWestBattlesWon}}</td>
             </tr>
             <tr>
                 <td>Score</td>

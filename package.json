@@ -1,9 +1,9 @@
 {
   "name": "klaverjassen",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve -o",
+    "start": "ng serve --port 4223 -o",
     "build": "ng build",
     "build-p": "ng build --configuration production --base-href /klaverjassen/",
     "watch": "ng build --watch --configuration development",

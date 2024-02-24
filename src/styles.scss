@@ -224,7 +224,6 @@ button.full-screen-button {
 
 div.confirm-trump, div.choose-another-trump {
     position: absolute;
-    visibility: hidden;
     z-index: 51;
     top: calc(0.6*$body_height);
     left: calc(0.15*$body_width);
@@ -237,10 +236,6 @@ div.confirm-trump, div.choose-another-trump {
     text-align: center;
     font-size: clamp(1px, 2vw, 3vh);
 
-    &.show {
-        visibility: visible;
-    }
-
     button {
         margin: 4% 5%;
         height: calc(0.08*$body_height);
@@ -252,6 +247,7 @@ div.confirm-trump, div.choose-another-trump {
         cursor: pointer;
 
         &.troef-symbol {
+            width: calc(0.1*$body_width);
             font-size: xxx-large;
         }
     }
@@ -298,7 +294,7 @@ div.score-board {
             }
         };
         tr.total > td {
-            padding-top: 20%;
+            padding-top: 10%;
             font-weight: bold;
         }
     }
@@ -324,7 +320,6 @@ div.score-popup {
 
 div.error-popup {
     position: absolute;
-    visibility: hidden;
     z-index: 52;
     top: calc(0.45*$body_height);
     left: calc(0.3*$body_width);
@@ -339,10 +334,6 @@ div.error-popup {
 
     span {
         font-weight: bold;
-    }
-
-    &.show {
-        visibility: visible;
     }
 
     button {
