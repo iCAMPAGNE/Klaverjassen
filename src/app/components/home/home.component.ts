@@ -320,26 +320,31 @@ export class HomeComponent implements OnInit {
 
   private allowedCardsForPlayerInCurrentBattle(playerNr: number): Card[] {
     const cards: Card[] = this.cardsOfPlayers[playerNr].filter(card => !card.used);
-    // If player started battle, every card is allowed.
+    // GameRule-1  If player started battle, every card is allowed.
     if (this.numberOfPlayed === 0) {
       return cards;
     }
 
     // Determine suit of first player in this battle.
-    let suitNr:number  | undefined;
-    for (let i = playerNr + 1; i < playerNr + 4 && suitNr == undefined; i++) {
-      const card:Card | undefined = this.cardsOfPlayers[i % 4].find(card => card.moving);
-      if (card != undefined) {
-        suitNr = card.suitNr;
-      }
-    }
-    if (suitNr != undefined) { // If player has card(s) with suit, only these are allowed.
-      if (cards.some(card => card.suitNr === suitNr)) {
-        return cards.filter(card => card.suitNr === suitNr);
-      }
+    let firstPlayer: number = (playerNr - this.numberOfPlayed + 4) % 4;
+    let suitNr:number = this.cardsOfPlayers[firstPlayer].find(card => card.moving)!.suitNr;
+
+    // If first card is trump, only cards higher than the highest trump so far are allowed.
+    const highestTrumpCardPlayed: Card | undefined = this.cards.filter(card => card.moving && card.suitNr === this.trumpSuitNr).reduce((highest: Card | undefined, card: Card) => !highest || card.value > highest.value ? card : highest, undefined);
+    if (suitNr === this.trumpSuitNr && highestTrumpCardPlayed) {
+      // GameRule-2  If firstPlayer played trump, play also trump with at least same value
+      return this.ifEmpty(cards.filter(card => card.suitNr === this.trumpSuitNr && card.value >= highestTrumpCardPlayed.value),
+        // GameRule-3  If firstPlayer played trump, and you don't have trump with at least same level, use other (lower trump
+        this.ifEmpty(cards.filter((card => card.suitNr === this.trumpSuitNr)),
+        cards)); // GameRule-4  No trump at all, any card will do.
     }
 
-    // If 'mate' is in the lead (card with the highest value so far), any card is allowed.
+    // GameRule-5   Use suit if you have
+    if (cards.some(card => card.suitNr === suitNr)) {
+      return cards.filter(card => card.suitNr === suitNr) || cards;
+    }
+
+    // GameRule-6  Can't follow suit?  If 'mate' is in the lead (card with the highest value so far), any card is allowed.
     const matePlayerNr = (playerNr + 2) % 4;
     const cardOfMate: Card | undefined = this.cardsOfPlayers[matePlayerNr].find(card => card.moving);
     if (cardOfMate) {
@@ -349,24 +354,15 @@ export class HomeComponent implements OnInit {
       }
     }
 
-    // If player can't follow suit, try 'trump'
-    if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.suitNr === this.trumpSuitNr)) {
-      // Check whether someone else already played trump.
-      const highestTrumpScore:number = this.cardsOfPlayers.map(cardsOfPlayer => cardsOfPlayer.find(card => card.moving && card.suitNr === this.trumpSuitNr)?.value || 0).reduce((highestScore, score) => Math.max(highestScore, score), 0);
-      if (highestTrumpScore > 0) {
-        // Someone played trump so check if you have trump-cards of higher value
-        if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.suitNr === this.trumpSuitNr && card.value > highestTrumpScore)) {
-          return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.suitNr === this.trumpSuitNr && card.value > highestTrumpScore);
-        } else {
-          // So no trump-cards with higher value present, does player have other cards than trump?
-          if (this.cardsOfPlayers[playerNr].some(card => !card.used && card.suitNr !== this.trumpSuitNr)) {
-            // Only other cards (except trump) are allowed.
-            return this.cardsOfPlayers[playerNr].filter(card => !card.used && card.suitNr !== this.trumpSuitNr);
-          } // else, all cards, which are only trump-cards with lower value, are allowed.
-        }
-      }
+    // GameRule-7  use trump with higher value if needed.
+    if (highestTrumpCardPlayed) {
+      return this.ifEmpty(cards.filter(card => card.suitNr === this.trumpSuitNr && card.value >= highestTrumpCardPlayed.value),
+        // GameRule-8                                                                GameRule-9
+        this.ifEmpty(cards.filter((card => card.suitNr !== this.trumpSuitNr)), cards));
     }
-    return cards;
+
+    // GameRule-7/8                                                                   GameRule-9
+    return this.ifEmpty(cards.filter(card => card.suitNr === this.trumpSuitNr), cards);
   }
 
   isCardDisabled(card: Card): boolean {
@@ -393,7 +389,7 @@ export class HomeComponent implements OnInit {
 //    const maxValue: number = allowedCards.reduce((maxVal: number, card: Card) => Math.max(maxVal, card.value), 0);
 //    const cardWithMaxValue: Card = allowedCards.reduce((cardWithMaxValue: Card, card: Card) => card.value > cardWithMaxValue.value ? card : cardWithMaxValue);
 
-    // Is turn on player? Check if player has trump cards and use the card with the highest value.
+    // Is turn on (first) player? Check if player has trump cards and use the card with the highest value.
     let card: Card | undefined;
     if (this.numberOfPlayed === 0) {
       // Player is first one of battle
@@ -496,18 +492,24 @@ export class HomeComponent implements OnInit {
           }
         }
 
-        // (20240224-1) If mate didn't start battle but played a trump-card, use a low-level non-trump-card.
+        // (20240224-1) If mate didn't start battle but played the highest available trump-card, use a low-level non-trump-card.
         if (cardOfMate && matePlayerNr !== firstPlayer) {
           if (firstCardOfThisBattle.suitNr !== this.trumpSuitNr && cardOfMate.suitNr === this.trumpSuitNr) {
-            const availableCardsOpponents = this.cardsOfPlayers[opponent1].concat(this.cardsOfPlayers[opponent2]).filter(card => card.suitNr === this.trumpSuitNr && !card.used);
+            let noNeedToUseTrump: boolean = false;
+            const availableCardsOpponents = this.cardsOfPlayers[opponent1].concat(this.cardsOfPlayers[opponent2]).filter(card => card.suitNr === this.trumpSuitNr && (!card.used || card.moving));
             if (availableCardsOpponents && availableCardsOpponents.length > 0) {
               const highestAvailableCard = availableCardsOpponents.reduce((cardWithMaxValue: Card, card: Card) => card.value > cardWithMaxValue.value ? card : cardWithMaxValue);
               if (cardOfMate.value > highestAvailableCard.value) {
-                // No need to use trump, use card with the lowest value
-                return allowedCards.filter(card => card.suitNr !== this.trumpSuitNr).length > 0 ?
-                  allowedCards.filter(card => card.suitNr !== this.trumpSuitNr).reduce((lowestValueCard, card) => card.value < lowestValueCard.value ? card : lowestValueCard) :
-                  allowedCards.filter(card => card.suitNr === this.trumpSuitNr).reduce((lowestValueCard, card) => card.value < lowestValueCard.value ? card : lowestValueCard);
+                noNeedToUseTrump = true;
               }
+            } else {
+              noNeedToUseTrump = true;
+            }
+            if (noNeedToUseTrump) {
+              // No need to use trump, use card with the lowest value
+              return allowedCards.filter(card => card.suitNr !== this.trumpSuitNr).length > 0 ?
+                allowedCards.filter(card => card.suitNr !== this.trumpSuitNr).reduce((lowestValueCard, card) => card.value < lowestValueCard.value ? card : lowestValueCard) :
+                allowedCards.filter(card => card.suitNr === this.trumpSuitNr).reduce((lowestValueCard, card) => card.value < lowestValueCard.value ? card : lowestValueCard);
             }
           }
         }
@@ -659,7 +661,7 @@ export class HomeComponent implements OnInit {
           if (this.northSouthRoundScore + this.northSouthRoundKudos >= halfTotalScore + 1) {
             // this.northSouthTotalScore += this.northSouthRoundScore + (this.northSouthRoundScore >= 162 ? 100 : 0);
             // this.eastWestTotalScore += this.eastWestRoundScore;
-            this.roundWinnerText = 'Noord/Zuid hebben deze ronde gewonnen en krijgen hun punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + (this.northSouthRoundScore >= 162 ? 100 : 0));
+            this.roundWinnerText = 'Noord/Zuid hebben deze ronde gewonnen en krijgen hun punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos);
             if (this.northSouthBattlesWon == 8) {
               this.roundWinnerText += ', en 100 punten pit.'; // Pit for east&west
             }
@@ -672,7 +674,7 @@ export class HomeComponent implements OnInit {
           if (this.eastWestRoundScore + this.eastWestRoundKudos >= halfTotalScore + 1) {
             // this.northSouthTotalScore += this.northSouthRoundScore;
             // this.eastWestTotalScore += this.eastWestRoundScore + (this.eastWestRoundScore >= 162 ? 100 : 0);
-            this.roundWinnerText = 'Oost/West heeft deze ronde gewonnen en krijgt hun punten: ' + (this.eastWestRoundScore + this.eastWestRoundKudos + (this.eastWestRoundScore >= 162 ? 100 : 0));
+            this.roundWinnerText = 'Oost/West heeft deze ronde gewonnen en krijgt hun punten: ' + (this.eastWestRoundScore + this.eastWestRoundKudos);
             if (this.eastWestBattlesWon == 8) {
               this.roundWinnerText += ', en 100 punten pit.'; // Pit for north&south
             }
@@ -758,5 +760,9 @@ export class HomeComponent implements OnInit {
 
   closeErrorPopup() {
     this.errorMessage = '';
+  }
+
+  private  ifEmpty(cards1: Card[], cards2: Card[]): Card[] {
+    return (cards1 && cards1.length > 0) ? cards1 : cards2;
   }
 }
