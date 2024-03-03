@@ -662,48 +662,60 @@ export class HomeComponent implements OnInit {
             // this.northSouthTotalScore += this.northSouthRoundScore + (this.northSouthRoundScore >= 162 ? 100 : 0);
             // this.eastWestTotalScore += this.eastWestRoundScore;
             this.roundWinnerText = 'Noord/Zuid hebben deze ronde gewonnen en krijgen hun punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos);
-            if (this.northSouthBattlesWon == 8) {
+            if ((this.playersPlay[2] === true || this.playersPlay[4] === true) && this.northSouthBattlesWon == 8) {
               this.roundWinnerText += ', en 100 punten pit.'; // Pit for east&west
             }
             this.roundWinnerText += '<br><br>Oost/West krijgen hun ' + (this.eastWestRoundScore + this.eastWestRoundKudos) + ' punten.';
           } else {
             this.roundWinnerText = 'Oost/West heeft gewonnen en krijgt alle punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos);
-            // this.eastWestTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
+            if ((this.playersPlay[1] === true || this.playersPlay[3] === true) && this.eastWestBattlesWon == 8) {
+              this.roundWinnerText += ', en 100 punten pit.';
+            }
           }
         } else {
           if (this.eastWestRoundScore + this.eastWestRoundKudos >= halfTotalScore + 1) {
             // this.northSouthTotalScore += this.northSouthRoundScore;
             // this.eastWestTotalScore += this.eastWestRoundScore + (this.eastWestRoundScore >= 162 ? 100 : 0);
             this.roundWinnerText = 'Oost/West heeft deze ronde gewonnen en krijgt hun punten: ' + (this.eastWestRoundScore + this.eastWestRoundKudos);
-            if (this.eastWestBattlesWon == 8) {
-              this.roundWinnerText += ', en 100 punten pit.'; // Pit for north&south
+            if ((this.playersPlay[1] === true || this.playersPlay[3] === true) && this.eastWestBattlesWon == 8) {
+              this.roundWinnerText += ', en 100 punten pit.';
             }
             this.roundWinnerText += '<br><br>Noord/Zuid krijgen hun ' + (this.northSouthRoundScore + this.northSouthRoundKudos) + ' punten.';
           } else {
             this.roundWinnerText = 'Noord/Zuid heeft gewonnen en krijgt alle punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos);
-            // this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
+            if ((this.playersPlay[2] === true || this.playersPlay[4] === true) && this.northSouthBattlesWon == 8) {
+              this.roundWinnerText += ', en 100 punten pit.'; // Pit for east&west
+            }
           }
         }
-        // this.northSouthRoundScore = this.northSouthRoundKudos = this.eastWestRoundScore = this.eastWestRoundKudos = 0;
+
         this.endOfRound = true;
         setTimeout(() => {
           if ([0,2].includes(this.roundPlayer)) {
             if (this.northSouthRoundScore + this.northSouthRoundKudos >= halfTotalScore + 1) {
               this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + (this.northSouthBattlesWon == 8 ? 100 : 0);
               this.eastWestTotalScore += this.eastWestRoundScore + this.eastWestRoundKudos;
-              // this.roundWinner = 'Noord/Zuid';
+              if ((this.playersPlay[0] === true || this.playersPlay[2] === true) && this.northSouthBattlesWon == 8) {
+                this.northSouthTotalScore += 100;
+              }
             } else {
-              // this.roundWinner = 'Oost/West';
               this.eastWestTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
+              if ((this.playersPlay[1] === true || this.playersPlay[3] === true) && this.eastWestBattlesWon == 8) {
+                this.eastWestTotalScore += 100;
+              }
             }
           } else {
             if (this.eastWestRoundScore + this.eastWestRoundKudos >= halfTotalScore + 1) {
               this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos;
-              this.eastWestTotalScore += this.eastWestRoundScore + this.eastWestRoundKudos + (this.eastWestBattlesWon == 8 ? 100 : 0);
-              // this.roundWinner = 'Oost/West';
+              this.eastWestTotalScore += this.eastWestRoundScore + this.eastWestRoundKudos;
+              if ((this.playersPlay[1] === true || this.playersPlay[3] === true) && this.eastWestBattlesWon == 8) {
+                this.eastWestTotalScore += 100;
+              }
             } else {
-              // this.roundWinner = 'Noord/Zuid';
               this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
+              if ((this.playersPlay[0] === true || this.playersPlay[2] === true) && this.northSouthBattlesWon == 8) {
+                this.northSouthTotalScore += 100;
+              }
             }
           }
           this.northSouthRoundScore = this.northSouthRoundKudos = this.eastWestRoundScore = this.eastWestRoundKudos = 0;
