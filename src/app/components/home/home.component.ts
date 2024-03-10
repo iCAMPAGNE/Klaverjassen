@@ -334,7 +334,7 @@ export class HomeComponent implements OnInit {
     if (suitNr === this.trumpSuitNr && highestTrumpCardPlayed) {
       // GameRule-2  If firstPlayer played trump, play also trump with at least same value
       return this.ifEmpty(cards.filter(card => card.suitNr === this.trumpSuitNr && card.value >= highestTrumpCardPlayed.value),
-        // GameRule-3  If firstPlayer played trump, and you don't have trump with at least same level, use other (lower trump
+        // GameRule-3  If firstPlayer played trump, and you don't have trump with at least same level, use other (lower trump)
         this.ifEmpty(cards.filter((card => card.suitNr === this.trumpSuitNr)),
         cards)); // GameRule-4  No trump at all, any card will do.
     }
@@ -347,8 +347,12 @@ export class HomeComponent implements OnInit {
     // GameRule-6  Can't follow suit?  If 'mate' is in the lead (card with the highest value so far), any card is allowed.
     const matePlayerNr = (playerNr + 2) % 4;
     const cardOfMate: Card | undefined = this.cardsOfPlayers[matePlayerNr].find(card => card.moving);
-    if (cardOfMate) {
-      const score: number = this.cardsOfPlayers.filter((cardsOfPlayer, index) => index != matePlayerNr).filter(cardsOfPlayer => cardsOfPlayer.some(card => card.moving)).map(cardsOfPlayer => cardsOfPlayer.find(card => card.moving)?.value || 0).reduce((highestScore, score) => Math.max(highestScore, score), 0);
+    if (cardOfMate && [suitNr, this.trumpSuitNr].includes(cardOfMate.suitNr)) {
+      const score: number = this.cardsOfPlayers
+        .filter((cardsOfPlayer, index) => index != matePlayerNr) // don't take mate into account
+        .filter(cardsOfPlayer => cardsOfPlayer.some(card => card.moving)) // consider only players that already have played.
+        .map(cardsOfPlayer => cardsOfPlayer.find(card => card.moving)) // select playing cards
+        .reduce((highestScore, card) => card?.suitNr == cardOfMate.suitNr ? Math.max(highestScore, card.value) : card?.suitNr === this.trumpSuitNr ? 32 : highestScore, 0);
       if (cardOfMate.value > score) {
         return cards;
       }
@@ -657,33 +661,29 @@ export class HomeComponent implements OnInit {
       this.message = '';
       if (lastBattleOfRound) {
         const halfTotalScore: number = (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos) / 2;
-        if ([0,2].includes(this.roundPlayer)) {
+        if (this.playersPlay[0] === true || this.playersPlay[2] === true) {
           if (this.northSouthRoundScore + this.northSouthRoundKudos >= halfTotalScore + 1) {
-            // this.northSouthTotalScore += this.northSouthRoundScore + (this.northSouthRoundScore >= 162 ? 100 : 0);
-            // this.eastWestTotalScore += this.eastWestRoundScore;
             this.roundWinnerText = 'Noord/Zuid hebben deze ronde gewonnen en krijgen hun punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos);
-            if ((this.playersPlay[2] === true || this.playersPlay[4] === true) && this.northSouthBattlesWon == 8) {
+            if (this.northSouthBattlesWon == 8) {
               this.roundWinnerText += ', en 100 punten pit.'; // Pit for east&west
             }
             this.roundWinnerText += '<br><br>Oost/West krijgen hun ' + (this.eastWestRoundScore + this.eastWestRoundKudos) + ' punten.';
           } else {
             this.roundWinnerText = 'Oost/West heeft gewonnen en krijgt alle punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos);
-            if ((this.playersPlay[1] === true || this.playersPlay[3] === true) && this.eastWestBattlesWon == 8) {
+            if (this.eastWestBattlesWon == 8) {
               this.roundWinnerText += ', en 100 punten pit.';
             }
           }
         } else {
           if (this.eastWestRoundScore + this.eastWestRoundKudos >= halfTotalScore + 1) {
-            // this.northSouthTotalScore += this.northSouthRoundScore;
-            // this.eastWestTotalScore += this.eastWestRoundScore + (this.eastWestRoundScore >= 162 ? 100 : 0);
             this.roundWinnerText = 'Oost/West heeft deze ronde gewonnen en krijgt hun punten: ' + (this.eastWestRoundScore + this.eastWestRoundKudos);
-            if ((this.playersPlay[1] === true || this.playersPlay[3] === true) && this.eastWestBattlesWon == 8) {
+            if (this.eastWestBattlesWon == 8) {
               this.roundWinnerText += ', en 100 punten pit.';
             }
             this.roundWinnerText += '<br><br>Noord/Zuid krijgen hun ' + (this.northSouthRoundScore + this.northSouthRoundKudos) + ' punten.';
           } else {
             this.roundWinnerText = 'Noord/Zuid heeft gewonnen en krijgt alle punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos);
-            if ((this.playersPlay[2] === true || this.playersPlay[4] === true) && this.northSouthBattlesWon == 8) {
+            if (this.northSouthBattlesWon == 8) {
               this.roundWinnerText += ', en 100 punten pit.'; // Pit for east&west
             }
           }
@@ -691,16 +691,16 @@ export class HomeComponent implements OnInit {
 
         this.endOfRound = true;
         setTimeout(() => {
-          if ([0,2].includes(this.roundPlayer)) {
+          if (this.playersPlay[0] === true || this.playersPlay[2] === true) {
             if (this.northSouthRoundScore + this.northSouthRoundKudos >= halfTotalScore + 1) {
               this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + (this.northSouthBattlesWon == 8 ? 100 : 0);
               this.eastWestTotalScore += this.eastWestRoundScore + this.eastWestRoundKudos;
-              if ((this.playersPlay[0] === true || this.playersPlay[2] === true) && this.northSouthBattlesWon == 8) {
+              if (this.northSouthBattlesWon == 8) {
                 this.northSouthTotalScore += 100;
               }
             } else {
               this.eastWestTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
-              if ((this.playersPlay[1] === true || this.playersPlay[3] === true) && this.eastWestBattlesWon == 8) {
+              if (this.eastWestBattlesWon == 8) {
                 this.eastWestTotalScore += 100;
               }
             }
@@ -708,12 +708,12 @@ export class HomeComponent implements OnInit {
             if (this.eastWestRoundScore + this.eastWestRoundKudos >= halfTotalScore + 1) {
               this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos;
               this.eastWestTotalScore += this.eastWestRoundScore + this.eastWestRoundKudos;
-              if ((this.playersPlay[1] === true || this.playersPlay[3] === true) && this.eastWestBattlesWon == 8) {
+              if (this.eastWestBattlesWon == 8) {
                 this.eastWestTotalScore += 100;
               }
             } else {
               this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos;
-              if ((this.playersPlay[0] === true || this.playersPlay[2] === true) && this.northSouthBattlesWon == 8) {
+              if (this.northSouthBattlesWon == 8) {
                 this.northSouthTotalScore += 100;
               }
             }
