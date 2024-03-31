@@ -348,12 +348,7 @@ export class HomeComponent implements OnInit {
     const matePlayerNr = (playerNr + 2) % 4;
     const cardOfMate: Card | undefined = this.cardsOfPlayers[matePlayerNr].find(card => card.moving);
     if (cardOfMate && [suitNr, this.trumpSuitNr].includes(cardOfMate.suitNr)) {
-      const score: number = this.cardsOfPlayers
-        .filter((cardsOfPlayer, index) => index != matePlayerNr) // don't take mate into account
-        .filter(cardsOfPlayer => cardsOfPlayer.some(card => card.moving)) // consider only players that already have played.
-        .map(cardsOfPlayer => cardsOfPlayer.find(card => card.moving)) // select playing cards
-        .reduce((highestScore, card) => card?.suitNr == cardOfMate.suitNr ? Math.max(highestScore, card.value) : card?.suitNr === this.trumpSuitNr ? 32 : highestScore, 0);
-      if (cardOfMate.value > score) {
+      if (this.hasMateHighestCardSoFar(matePlayerNr, cardOfMate, suitNr)) {
         return cards;
       }
     }
@@ -566,6 +561,18 @@ export class HomeComponent implements OnInit {
       }
     }
     return allowedCards.sort((a, b) => a.value <= b.value ? -1 : 1)[0];
+  }
+
+  private hasMateHighestCardSoFar(matePlayerNr: number, cardOfMate: Card, suitNr: number): boolean {
+    if (cardOfMate && [suitNr, this.trumpSuitNr].includes(cardOfMate.suitNr)) {
+      const score: number = this.cardsOfPlayers
+        .filter((cardsOfPlayer, index) => index != matePlayerNr) // don't take mate into account
+        .filter(cardsOfPlayer => cardsOfPlayer.some(card => card.moving)) // consider only players that already have played.
+        .map(cardsOfPlayer => cardsOfPlayer.find(card => card.moving)) // select playing cards
+        .reduce((highestScore, card) => card?.suitNr == cardOfMate.suitNr ? Math.max(highestScore, card.value) : card?.suitNr === this.trumpSuitNr ? 32 : highestScore, 0);
+      return cardOfMate.value > score;
+    }
+    return false;
   }
 
   nextTurn() {
