@@ -245,6 +245,123 @@ describe('HomeComponent', () => {
     });
   });
 
+  /*
+    describe('use jasmine.clock()', () => {
+      it('should auto enter fakeAsync', () => {
+        component.closeErrorPopup();
+        component.methodMetTimeout();
+        jasmine.clock().tick(12000);
+        expect(component.errorMessage).toBe('timeout');
+      });
+    });
+  */
+  describe('bestGuessCard', () => {
+    beforeEach(() => {
+      component.battlePlayer = 0;
+    })
+
+    it('Is turn on (first) player? Check if player has trump cards and use the card with the highest value', () => {
+      const cards: Card[] = strs2cards(['♥7', '♥8', '♥Q', '♥K', '♤A']);
+      component.cardsOfPlayers[0] = strs2cards(['♦7', '♦10', '♦K', '♧Q', '♧K', '♧A']);
+      component.cardsOfPlayers[1] = strs2cards(['♦K', '♧8', '♦Q']);
+      component.cardsOfPlayers[2] = cards;
+      component.cardsOfPlayers[3] = strs2cards(['♦J', '♦7', '♧7']);
+      component.cards = [...component.cardsOfPlayers[0], ...component.cardsOfPlayers[1], ...component.cardsOfPlayers[2], ...component.cardsOfPlayers[3]];
+      component.numberOfPlayed = 0;
+
+      component.nextTurn();
+      jasmine.clock().tick(12000);
+
+      expect(component.cardsOfPlayers[0][0].moving).toBeTrue();
+      expect(component.cardsOfPlayers[1][0].moving).toBeTrue();
+    });
+
+    it("If mate started the battle and is in the lead without trump, don't overrule", () => {
+      component.cardsOfPlayers[3] = strs2cards(['♦Q']);
+      component.cardsOfPlayers[3][0].moving = true;
+      component.cardsOfPlayers[0] = strs2cards(['♥7', '♥10', '♧Q', '♧K', '♦J', '♧A']);
+      component.cardsOfPlayers[1] = strs2cards(['♦K', '♥8', '♦9', '♦A', '♥A', '♧J']);
+      component.cardsOfPlayers[2] = [];
+      component.cards = [...component.cardsOfPlayers[0], ...component.cardsOfPlayers[1], ...component.cardsOfPlayers[2], ...component.cardsOfPlayers[3]];
+      component.numberOfPlayed = 1;
+
+      component.nextTurn();
+      jasmine.clock().tick(12000);
+      showMovingCards(component.battlePlayer);
+
+      expect(cardTypeOfPlayer(0)).toBe('♦J');
+      expect(cardTypeOfPlayer(1)).toBe('♦9');
+    });
+
+    it("If mate started the battle and is in the lead without trump, don't overrule with trump", () => {
+      component.cardsOfPlayers[3] = strs2cards(['♦Q']);
+      component.cardsOfPlayers[3][0].moving = true;
+      component.cardsOfPlayers[0] = strs2cards(['♥7', '♥10', '♧Q', '♧K', '♦J', '♧A']);
+      component.cardsOfPlayers[1] = strs2cards(['♥K', '♥8', '♥9', '♤A', '♥A', '♧J']);
+      component.cardsOfPlayers[2] = [];
+      component.cards = [...component.cardsOfPlayers[0], ...component.cardsOfPlayers[1], ...component.cardsOfPlayers[2], ...component.cardsOfPlayers[3]];
+      component.numberOfPlayed = 1;
+
+      component.nextTurn();
+      jasmine.clock().tick(11500);
+      showMovingCards(component.battlePlayer);
+
+      expect(cardTypeOfPlayer(0)).toBe('♦J');
+      expect(cardTypeOfPlayer(1)).toBe('♥8');
+    });
+
+    it("If mate started the battle and is in the lead with no trump and player only has trump, choose lowest one", () => {
+      component.cardsOfPlayers[3] = strs2cards(['♦Q']);
+      component.cardsOfPlayers[3][0].moving = true;
+      component.cardsOfPlayers[0] = strs2cards(['♥7', '♥10', '♤Q', '♦J', '♤A']);
+      component.cardsOfPlayers[1] = strs2cards(['♧K', '♧J', '♧8', '♧9', '♧A']);
+      component.cardsOfPlayers[2] = [];
+      component.cards = [...component.cardsOfPlayers[0], ...component.cardsOfPlayers[1], ...component.cardsOfPlayers[2], ...component.cardsOfPlayers[3]];
+      component.numberOfPlayed = 1;
+
+      component.nextTurn();
+      jasmine.clock().tick(12000);
+      showMovingCards(component.battlePlayer);
+
+      expect(cardTypeOfPlayer(0)).toBe('♦J');
+      expect(cardTypeOfPlayer(1)).toBe('♧8');
+    });
+
+    it("If mate didn't start battle but is in the lead without trump, don't overrule without trump", () => {
+      component.battlePlayer = 3;
+      component.cardsOfPlayers[2] = strs2cards(['♦Q']);
+      component.cardsOfPlayers[2][0].moving = true;
+      component.cardsOfPlayers[3] = strs2cards(['♥7', '♥10', '♧Q', '♧K', '♦J', '♦10']);
+      component.cardsOfPlayers[0] = strs2cards(['♦7']);
+      component.cardsOfPlayers[1] = strs2cards(['♦K', '♥8', '♦9', '♦A', '♥A', '♧J']);
+      component.cards = [...component.cardsOfPlayers[0], ...component.cardsOfPlayers[1], ...component.cardsOfPlayers[2], ...component.cardsOfPlayers[3]];
+      component.numberOfPlayed = 1;
+
+      component.nextTurn();
+      jasmine.clock().tick(13000);
+      showMovingCards(2);
+
+      expect(cardTypeOfPlayer(1)).toBe('♦9');
+    });
+  });
+
+  function cardTypeOfPlayer(player: number) {
+    const card: Card = component.cardsOfPlayers[player][0];
+    return SUIT[card.suitNr].symbol+cardNr2Type(card.nr)
+  }
+
+  function showMovingCards(battlePlayer: number) {
+    console.log(`Trump: ${SUIT[component.trumpSuitNr].symbol}, battlePlayer is ${battlePlayer}`)
+    for(let playerNr = battlePlayer; playerNr <= battlePlayer + 3; playerNr++) {
+      const playerCards = component.cardsOfPlayers[playerNr % 4];
+      playerCards.forEach((playerCard, index) => {
+        if (playerCard.moving) {
+          console.log(`${playerNr % 4}: [${index}] ${SUIT[playerCard.suitNr].symbol}${cardNr2Type(playerCard.nr).padEnd(2, ' ')}  ` + playerCard.value);
+        }
+      });
+    }
+  }
+
   function strs2cards(cardsStrings: string[]): Card[] {
     return cardsStrings.map(cardString => convertStringToCard(cardString));
   }
@@ -253,6 +370,10 @@ describe('HomeComponent', () => {
     const suitNr: number = SUIT.findIndex(s => s.symbol === cardString.charAt(0));
     const nr: number = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'].findIndex(n => n === cardString.substring(1)) + 7;
     return createCard(nr, suitNr);
+  }
+
+  function cardNr2Type(nr:number): string {
+    return ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'][nr - 7];
   }
 
   function createCard(nr: number, suitNr: number): Card {

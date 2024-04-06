@@ -385,8 +385,6 @@ export class HomeComponent implements OnInit {
     if (allowedCards.length === 1) {
       return allowedCards[0];
     }
-//    const maxValue: number = allowedCards.reduce((maxVal: number, card: Card) => Math.max(maxVal, card.value), 0);
-//    const cardWithMaxValue: Card = allowedCards.reduce((cardWithMaxValue: Card, card: Card) => card.value > cardWithMaxValue.value ? card : cardWithMaxValue);
 
     // Is turn on (first) player? Check if player has trump cards and use the card with the highest value.
     let card: Card | undefined;
@@ -396,7 +394,6 @@ export class HomeComponent implements OnInit {
       if (allowedCards.some(card => card.suitNr === this.trumpSuitNr)
         && allowedCards.some(card => card.suitNr !== this.trumpSuitNr)
         && this.cardsOfPlayers[opponent1].concat(this.cardsOfPlayers[opponent2]).filter(card => !card.used).every(card => card.suitNr != this.trumpSuitNr)) {
-//        console.log('Player ' + this.PlayerNames[this.battlePlayer] + ' has all trump-cards that are left and has other cards');
       } else {
         if (!this.cards.some(card => card.used && card.suitNr === this.trumpSuitNr && card.nr === 11)) { // check trump Jack
           card = allowedCards.find(card => card.suitNr === this.trumpSuitNr && card.nr === 11);
@@ -428,7 +425,27 @@ export class HomeComponent implements OnInit {
     if (firstCardOfThisBattle) {
       const cardOfMate: Card | undefined = this.cardsOfPlayers[(this.battlePlayer + 2) % 4].find(card => card.moving);
       const cardOfOtherOpponent: Card | undefined = this.cardsOfPlayers[(firstPlayer + 2) % 4].find(card => card.moving);
-      if (allowedCards.some(card => card.suitNr === firstCardOfThisBattle?.suitNr)) {
+
+      const playerHasSuit: boolean = allowedCards.some(card => card.suitNr === firstCardOfThisBattle?.suitNr);
+
+      // If mate is in teh lead so far, use lowest card and no trump if not needed
+      if (cardOfMate) {
+        const opponent1Card: Card | undefined = this.cardsOfPlayers[opponent1].find(card => card.moving);
+        const opponent2Card: Card | undefined = this.cardsOfPlayers[opponent2].find(card => card.moving);
+        if (!(opponent1Card && opponent1Card.value > cardOfMate.value || opponent2Card && opponent2Card.value > cardOfMate.value)) {
+          // Mate is in the lead so use lowest card
+          if (playerHasSuit) {
+            return allowedCards.reduce((cardWithMimValue: Card, card: Card) => card.value < cardWithMimValue.value ? card : cardWithMimValue);
+          }
+          if (allowedCards.some(card => card.suitNr !== this.trumpSuitNr)) {
+            return allowedCards.filter(card => card.suitNr !== this.trumpSuitNr).reduce((cardWithMimValue: Card, card: Card) => card.value < cardWithMimValue.value ? card : cardWithMimValue);
+          }
+          return allowedCards.reduce((cardWithMimValue: Card, card: Card) => card.value < cardWithMimValue.value ? card : cardWithMimValue);
+        }
+      }
+
+
+      if (playerHasSuit) {
         let highestValueOfOpponent: number = 0;
         if (firstPlayer === matePlayerNr) {
           const cardOfOpponent: Card | undefined = this.cardsOfPlayers[(firstPlayer + 1) % 4].find(card => card.moving);
@@ -472,60 +489,6 @@ export class HomeComponent implements OnInit {
           }
         }
 
-
-        // If mate started battle with the highest value for that suit that is still available, use the lowest one (if player has cards of that suit)
-        if (cardOfMate && matePlayerNr === firstPlayer) {
-          const availableCardsOpponents = this.cardsOfPlayers[opponent1].concat(this.cardsOfPlayers[opponent2]).filter(card => card.suitNr === cardOfMate.suitNr && !card.used);
-          if (availableCardsOpponents && availableCardsOpponents.length > 0) {
-            const highestAvailableCard = availableCardsOpponents.reduce((cardWithMaxValue: Card, card: Card) => card.value > cardWithMaxValue.value ? card : cardWithMaxValue);
-            if (highestAvailableCard && cardOfMate.value >= highestAvailableCard.value) {
-              // Does player have cards of suit?
-              const c = allowedCards.filter(card => card.suitNr === cardOfMate.suitNr);
-              if (c && c.length > 0) {
-                const cardOfSuitWithLowestValue = c.reduce((cardWithMaxValue: Card, card: Card) => card.value < cardWithMaxValue.value ? card : cardWithMaxValue);
-                if (cardOfSuitWithLowestValue) {
-                  return cardOfSuitWithLowestValue;
-                }
-              }
-            }
-          }
-        }
-
-        // (20240224-1) If mate didn't start battle but played the highest available trump-card, use a low-level non-trump-card.
-        if (cardOfMate && matePlayerNr !== firstPlayer) {
-          if (firstCardOfThisBattle.suitNr !== this.trumpSuitNr && cardOfMate.suitNr === this.trumpSuitNr) {
-            let noNeedToUseTrump: boolean = false;
-            const availableCardsOpponents = this.cardsOfPlayers[opponent1].concat(this.cardsOfPlayers[opponent2]).filter(card => card.suitNr === this.trumpSuitNr && (!card.used || card.moving));
-            if (availableCardsOpponents && availableCardsOpponents.length > 0) {
-              const highestAvailableCard = availableCardsOpponents.reduce((cardWithMaxValue: Card, card: Card) => card.value > cardWithMaxValue.value ? card : cardWithMaxValue);
-              if (cardOfMate.value > highestAvailableCard.value) {
-                noNeedToUseTrump = true;
-              }
-            } else {
-              noNeedToUseTrump = true;
-            }
-            if (noNeedToUseTrump) {
-              // No need to use trump, use card with the lowest value
-              return allowedCards.filter(card => card.suitNr !== this.trumpSuitNr).length > 0 ?
-                allowedCards.filter(card => card.suitNr !== this.trumpSuitNr).reduce((lowestValueCard, card) => card.value < lowestValueCard.value ? card : lowestValueCard) :
-                allowedCards.filter(card => card.suitNr === this.trumpSuitNr).reduce((lowestValueCard, card) => card.value < lowestValueCard.value ? card : lowestValueCard);
-            }
-          }
-        }
-
-/*
-        // If mate started battle with the highest possible trump, use the lowest one (if player has trump cards)
-        if (matePlayerNr === firstPlayer && cardOfMate && cardOfMate.suitNr === this.trumpSuitNr) {
-          const highestAvailableCard = this.cardsOfPlayers[opponent1].concat(this.cardsOfPlayers[opponent2]).filter(card => card.suitNr === this.trumpSuitNr && !card.used).reduce((cardWithMaxValue: Card, card: Card) => card.value > cardWithMaxValue.value ? card : cardWithMaxValue);
-          if (cardOfMate.value >= highestAvailableCard.value) {
-            // Does player have trump cards?
-            const lowestTrump = allowedCards.filter(card => card.suitNr === this.trumpSuitNr).sort((a,b) => a.value < b.value ? -1 : 1).find(card => true);
-            if (lowestTrump) {
-              return lowestTrump;
-            }
-          }
-        }
-*/
         // First check if Mate will win this battle so that you can sign (seinen)
         if (cardOfOtherOpponent) { // All other parties have played
           if (firstCardOfThisBattle.suitNr !== this.trumpSuitNr && cardOfOtherOpponent.suitNr !== this.trumpSuitNr && (cardOfMate?.suitNr === this.trumpSuitNr || (cardOfMate?.suitNr === firstCardOfThisBattle.suitNr && Math.max(firstCardOfThisBattle.value, cardOfOtherOpponent.value) >= (cardOfMate?.value || 0)))) {
@@ -664,7 +627,6 @@ export class HomeComponent implements OnInit {
 
       this.battlePlayer = winnerPlayer;
       this.numberOfPlayed = 0;
-      this.cards.forEach(c => c.moving = false);
       this.message = '';
       if (lastBattleOfRound) {
         const halfTotalScore: number = (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos) / 2;
@@ -750,6 +712,7 @@ export class HomeComponent implements OnInit {
         }, 10000);
       } else {
         setTimeout(() => { // Wait until cards are removed from work-area.
+          this.cards.forEach(c => c.moving = false);
           this.nextTurn();
         }, 900)
       }
