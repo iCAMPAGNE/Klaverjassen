@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { HomeComponent } from './home.component';
-import {Card, SUIT} from "../../models/model";
+import { Card, SUIT } from "../../models/model";
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
@@ -35,16 +34,7 @@ describe('HomeComponent', () => {
 
     expect(component.errorMessage).toBe('');
   });
-/*
-  describe('use jasmine.clock()', () => {
-    it('should auto enter fakeAsync', () => {
-      component.closeErrorPopup();
-      component.methodMetTimeout();
-      jasmine.clock().tick(12000);
-      expect(component.errorMessage).toBe('timeout');
-    });
-  });
-*/
+
   describe('allowedCardsForPlayerInCurrentBattle', () => {
     beforeEach(() => {
       component.battlePlayer = 2;
@@ -245,16 +235,6 @@ describe('HomeComponent', () => {
     });
   });
 
-  /*
-    describe('use jasmine.clock()', () => {
-      it('should auto enter fakeAsync', () => {
-        component.closeErrorPopup();
-        component.methodMetTimeout();
-        jasmine.clock().tick(12000);
-        expect(component.errorMessage).toBe('timeout');
-      });
-    });
-  */
   describe('bestGuessCard', () => {
     beforeEach(() => {
       component.battlePlayer = 0;
@@ -368,12 +348,12 @@ describe('HomeComponent', () => {
 
   function convertStringToCard(cardString: string): Card {
     const suitNr: number = SUIT.findIndex(s => s.symbol === cardString.charAt(0));
-    const nr: number = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'].findIndex(n => n === cardString.substring(1)) + 7;
+    const nr: number = CARD_NUMBERS.findIndex(n => n === cardString.substring(1)) + 7;
     return createCard(nr, suitNr);
   }
 
   function cardNr2Type(nr:number): string {
-    return ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'][nr - 7];
+    return CARD_NUMBERS[nr - 7];
   }
 
   function createCard(nr: number, suitNr: number): Card {
@@ -388,4 +368,5 @@ describe('HomeComponent', () => {
     }
   }
 
+  const CARD_NUMBERS: string[] = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 });
