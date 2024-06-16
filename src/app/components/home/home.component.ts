@@ -592,7 +592,7 @@ export class HomeComponent implements OnInit {
     const consecutive = this.cards.filter((card: Card) => card.moving).sort((a,b) => a.nr < b.nr ? -1:1)
         .reduce((result, element) => [element.suitNr,element.nr,element.suitNr === result[0] && element.nr == result[1] + 1 ? result[2] + 1 : result[2] == 1 ? 0 : result[2]], [0,0,0]);
     this.kudoScore += consecutive[2] == 3 ? 50 : consecutive[2] == 2 ? 20 : 0;
-    if (this.kudoScore > 0 && this.cards.filter((card: Card) => card.moving && card.suitNr == this.trumpSuitNr).reduce((stuk: number, card) => stuk + ([12,13].includes(card.nr) ? 1 : 0), 0) == 2) {
+    if (this.cards.filter((card: Card) => card.moving && card.suitNr == this.trumpSuitNr).reduce((stuk: number, card) => stuk + ([12,13].includes(card.nr) ? 1 : 0), 0) == 2) {
       this.kudoScore += 20; // "stuk"
     }
 
@@ -630,7 +630,7 @@ export class HomeComponent implements OnInit {
       this.message = '';
       if (lastBattleOfRound) {
         const halfTotalScore: number = (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos) / 2;
-        if (this.playersPlay[0] === true || this.playersPlay[2] === true) {
+        if ([2,4].includes(this.roundPlayer)) { // Did North or South played this round?
           if (this.northSouthRoundScore + this.northSouthRoundKudos >= halfTotalScore + 1) {
             this.roundWinnerText = 'Noord/Zuid hebben deze ronde gewonnen en krijgen hun punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos);
             if (this.northSouthBattlesWon == 8) {
@@ -638,12 +638,12 @@ export class HomeComponent implements OnInit {
             }
             this.roundWinnerText += '<br><br>Oost/West krijgen hun ' + (this.eastWestRoundScore + this.eastWestRoundKudos) + ' punten.';
           } else {
-            this.roundWinnerText = 'Oost/West heeft gewonnen en krijgt alle punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos);
+            this.roundWinnerText = 'Oost/West heeft gewonnen en krijgt alle punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos);
             if (this.eastWestBattlesWon == 8) {
               this.roundWinnerText += ', en 100 punten pit.';
             }
           }
-        } else {
+        } else { // East or West played this round
           if (this.eastWestRoundScore + this.eastWestRoundKudos >= halfTotalScore + 1) {
             this.roundWinnerText = 'Oost/West heeft deze ronde gewonnen en krijgt hun punten: ' + (this.eastWestRoundScore + this.eastWestRoundKudos);
             if (this.eastWestBattlesWon == 8) {
@@ -660,7 +660,7 @@ export class HomeComponent implements OnInit {
 
         this.endOfRound = true;
         setTimeout(() => {
-          if (this.playersPlay[0] === true || this.playersPlay[2] === true) {
+          if ([2,4].includes(this.roundPlayer)) { // Did North or South played this round?
             if (this.northSouthRoundScore + this.northSouthRoundKudos >= halfTotalScore + 1) {
               this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + (this.northSouthBattlesWon == 8 ? 100 : 0);
               this.eastWestTotalScore += this.eastWestRoundScore + this.eastWestRoundKudos;
@@ -673,7 +673,7 @@ export class HomeComponent implements OnInit {
                 this.eastWestTotalScore += 100;
               }
             }
-          } else {
+          } else { // East or West played this round
             if (this.eastWestRoundScore + this.eastWestRoundKudos >= halfTotalScore + 1) {
               this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos;
               this.eastWestTotalScore += this.eastWestRoundScore + this.eastWestRoundKudos;

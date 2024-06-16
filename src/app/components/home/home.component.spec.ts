@@ -53,12 +53,11 @@ describe('HomeComponent', () => {
       });
     });
 
-    it('player should trump with higher value if first player plays trump (GameRule 2)', () => {
-      const cards: Card[] = strs2cards(['♧7', '♧J', '♦10']);
+    it('player should play trump with higher value if first player plays trump (GameRule 2)', () => {
       component.cardsOfPlayers[0] = strs2cards(['♧8', '♦10', '♦K']);
       component.cardsOfPlayers[1] = strs2cards(['♧K', '♦7', '♦Q']);
-      component.cardsOfPlayers[1][0].moving = true;
-      component.cardsOfPlayers[2] = cards;
+      component.cardsOfPlayers[1][0].moving = true; // first one plays ♧K
+      component.cardsOfPlayers[2] = strs2cards(['♧7', '♧J', '♦10']);
       component.cardsOfPlayers[3] = strs2cards(['♧8', '♦7', '♧Q']);
       component.cards = [...component.cardsOfPlayers[0], ...component.cardsOfPlayers[1], ...component.cardsOfPlayers[2], ...component.cardsOfPlayers[3]];
       component.selectAnotherTrump(0); // Needed to fill card.value, but it also sorts the cards based on value!
@@ -241,10 +240,9 @@ describe('HomeComponent', () => {
     })
 
     it('Is turn on (first) player? Check if player has trump cards and use the card with the highest value', () => {
-      const cards: Card[] = strs2cards(['♥7', '♥8', '♥Q', '♥K', '♤A']);
       component.cardsOfPlayers[0] = strs2cards(['♦7', '♦10', '♦K', '♧Q', '♧K', '♧A']);
       component.cardsOfPlayers[1] = strs2cards(['♦K', '♧8', '♦Q']);
-      component.cardsOfPlayers[2] = cards;
+      component.cardsOfPlayers[2] = strs2cards(['♥7', '♥8', '♥Q', '♥K', '♤A']);
       component.cardsOfPlayers[3] = strs2cards(['♦J', '♦7', '♧7']);
       component.cards = [...component.cardsOfPlayers[0], ...component.cardsOfPlayers[1], ...component.cardsOfPlayers[2], ...component.cardsOfPlayers[3]];
       component.numberOfPlayed = 0;
@@ -290,7 +288,7 @@ describe('HomeComponent', () => {
       expect(cardTypeOfPlayer(1)).toBe('♥8');
     });
 
-    it("If mate started the battle and is in the lead with no trump and player only has trump, choose lowest one", () => {
+    it("If mate (West, 3) started the battle and is in the lead with no trump and player only has trump, choose lowest one", () => {
       component.cardsOfPlayers[3] = strs2cards(['♦Q']);
       component.cardsOfPlayers[3][0].moving = true;
       component.cardsOfPlayers[0] = strs2cards(['♥7', '♥10', '♤Q', '♦J', '♤A']);
@@ -307,10 +305,10 @@ describe('HomeComponent', () => {
       expect(cardTypeOfPlayer(1)).toBe('♧8');
     });
 
-    it("If mate didn't start battle but is in the lead without trump, don't overrule without trump", () => {
+    it("If mate (West, 3) didn't start battle but is in the lead without trump, don't overrule without trump", () => {
       component.battlePlayer = 3;
       component.cardsOfPlayers[2] = strs2cards(['♦Q']);
-      component.cardsOfPlayers[2][0].moving = true;
+      component.cardsOfPlayers[2][0].moving = true;  // First one played ♦Q so suit is ♦Q
       component.cardsOfPlayers[3] = strs2cards(['♥7', '♥10', '♧Q', '♧K', '♦J', '♦10']);
       component.cardsOfPlayers[0] = strs2cards(['♦7']);
       component.cardsOfPlayers[1] = strs2cards(['♦K', '♥8', '♦9', '♦A', '♥A', '♧J']);
@@ -322,6 +320,26 @@ describe('HomeComponent', () => {
       showMovingCards(2);
 
       expect(cardTypeOfPlayer(1)).toBe('♦9');
+    });
+
+    it("If mate (North, 0) didn't start battle but is in the lead with trump and player doesn't have suit, any card is allowed", () => {
+      component.battlePlayer = 2;
+      component.cardsOfPlayers[3] = strs2cards(['♤9', '♦Q', '♥9']);
+      component.cardsOfPlayers[3][0].moving = true;
+      component.cardsOfPlayers[0] = strs2cards(['♧K', '♦10', '♦7']);
+      component.cardsOfPlayers[0][0].moving = true;
+      component.cardsOfPlayers[1] = strs2cards(['♤A', '♦7', '♥Q']);
+      component.cardsOfPlayers[1][0].moving = true;
+      component.cardsOfPlayers[2] = strs2cards(['♥10', '♧J', '♧Q', '♦10']); // every card is allowed, so not disabled.
+      component.cards = [...component.cardsOfPlayers[0], ...component.cardsOfPlayers[1], ...component.cardsOfPlayers[2], ...component.cardsOfPlayers[3]];
+      component.selectAnotherTrump(0); // Just to sort the cards based on value!
+      component.numberOfPlayed = 3;
+
+      showMovingCards(3);
+
+      component.cardsOfPlayers[2].forEach(card => {
+        expect(component.isCardDisabled(card)).toBeFalse();
+      });
     });
   });
 
