@@ -630,7 +630,7 @@ export class HomeComponent implements OnInit {
       this.message = '';
       if (lastBattleOfRound) {
         const halfTotalScore: number = (this.northSouthRoundScore + this.northSouthRoundKudos + this.eastWestRoundScore + this.eastWestRoundKudos) / 2;
-        if ([2,4].includes(this.roundPlayer)) { // Did North or South played this round?
+        if ([0,2].includes(this.roundPlayer)) { // Did North or South played this round?
           if (this.northSouthRoundScore + this.northSouthRoundKudos >= halfTotalScore + 1) {
             this.roundWinnerText = 'Noord/Zuid hebben deze ronde gewonnen en krijgen hun punten: ' + (this.northSouthRoundScore + this.northSouthRoundKudos);
             if (this.northSouthBattlesWon == 8) {
@@ -660,7 +660,7 @@ export class HomeComponent implements OnInit {
 
         this.endOfRound = true;
         setTimeout(() => {
-          if ([2,4].includes(this.roundPlayer)) { // Did North or South played this round?
+          if ([0,2].includes(this.roundPlayer)) { // Did North or South played this round?
             if (this.northSouthRoundScore + this.northSouthRoundKudos >= halfTotalScore + 1) {
               this.northSouthTotalScore += this.northSouthRoundScore + this.northSouthRoundKudos + (this.northSouthBattlesWon == 8 ? 100 : 0);
               this.eastWestTotalScore += this.eastWestRoundScore + this.eastWestRoundKudos;
