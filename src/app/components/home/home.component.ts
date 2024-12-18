@@ -297,7 +297,9 @@ export class HomeComponent implements OnInit {
     }, 1000);
   }
 
-  cardClick(card: Card): boolean {
+  cardClick(card: Card): void {
+    if (card.moving) return; // Clicking at moving card is not allowed.
+    this.battlePlayer += 4; // Disable all non-moving cards without changing next battlePlayer.
     card.x = this.offset[2].x;
     card.y = this.offset[2].y;
     card.used = true;
@@ -311,7 +313,6 @@ export class HomeComponent implements OnInit {
         this.nextTurn();
       }
     }, 800);
-    return true;
   }
 
   showValueOfCard(playerNr: number) {
